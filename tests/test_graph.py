@@ -125,3 +125,28 @@ def test_merge():
             [None, 4],
         ),
     ]
+
+
+def test_strip_to_transients():
+    g = graph.create_graph()
+
+    input1 = graph.create_input(g, "bar1", onnx.TensorProto.FLOAT, [None, 3])
+    input2 = graph.create_input(g, "bar2", onnx.TensorProto.FLOAT, [None, 4])
+
+    m = graph.merge(input1, input2)
+    m = graph.strip_to_transients(m)
+
+    assert m.initializers == []
+    assert m.inputs == []
+    assert m.transients == [
+        onnx.helper.make_tensor_value_info(
+            'bar1' ,
+            onnx.TensorProto.FLOAT,
+            [None, 3],
+        ),
+        onnx.helper.make_tensor_value_info(
+            'bar2' ,
+            onnx.TensorProto.FLOAT,
+            [None, 4],
+        ),
+    ]

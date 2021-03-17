@@ -62,8 +62,10 @@ def to_onnx(model, name=None,
             bins_1 = [np.NINF, np.NINF] + list(model.pair_preprocessor_.col_bin_edges_[feature_group[1]])
             additive_terms = model.additive_terms_[feature_index]
 
-            part_0 = ebm.get_bin_index_on_continuous_value(bins)(inputs[feature_group[0]])
-            part_1 = ebm.get_bin_index_on_continuous_value(bins)(inputs[feature_group[1]])
+            input_0 = graph.strip_to_transients(inputs[feature_group[0]])
+            part_0 = ebm.get_bin_index_on_continuous_value(bins_0)(input_0)
+            input_1 = graph.strip_to_transients(inputs[feature_group[1]])
+            part_1 = ebm.get_bin_index_on_continuous_value(bins_1)(input_1)
             part = graph.merge(part_0, part_1)
             part = ebm.get_bin_score_2d(np.array(additive_terms))(part)
             parts.append(part)

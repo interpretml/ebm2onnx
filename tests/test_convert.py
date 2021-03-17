@@ -36,7 +36,7 @@ def train_titanic_binary_classification(interactions):
     return model, x_test, y_test
 
 
-def test_predict_binary_classification_no_interactions():
+def test_predict_binary_classification_without_interactions():
     model_ebm, x_test, y_test = train_titanic_binary_classification(interactions=0)
     pred_ebm = model_ebm.predict(x_test)    
 
@@ -57,7 +57,7 @@ def test_predict_binary_classification_no_interactions():
     assert np.allclose(pred_ebm, pred_onnx)
 
 
-def test_predict_proba_binary_classification_no_interactions():
+def test_predict_proba_binary_classification_without_interactions():
     model_ebm, x_test, y_test = train_titanic_binary_classification(interactions=0)
     pred_ebm = model_ebm.predict_proba(x_test)
     pred_ebm_local = model_ebm.explain_local(x_test, y_test)
@@ -96,3 +96,48 @@ def test_predict_proba_binary_classification_no_interactions():
         print(model_ebm.additive_terms_[0])
         assert pred_ebm[row, 0] == pytest.approx(pred_onnx[0][row, 0])
     '''
+
+def test_predict_binary_classification_with_interactions():
+    model_ebm, x_test, y_test = train_titanic_binary_classification(interactions=2)
+    pred_ebm = model_ebm.predict(x_test)
+
+    model_onnx = ebm2onnx.to_onnx(
+        model_ebm,
+        dtype={
+            'Age': 'double',
+            'Fare': 'double',
+            'Pclass': 'int',
+        }
+    )
+
+    pred_onnx = infer_model(model_onnx, {
+        'Age': x_test['Age'].values,
+        'Fare': x_test['Fare'].values,
+        'Pclass': x_test['Pclass'].values,
+    })
+
+    assert np.allclose(pred_ebm, pred_onnx)
+
+
+def test_predict_proba_binary_classification_with_interactions():
+    model_ebm, x_test, y_test = train_titanic_binary_classification(interactions=2)
+    pred_ebm = model_ebm.predict_proba(x_test)
+
+    model_onnx = ebm2onnx.to_onnx(
+        model_ebm,
+        predict_proba=True,
+        # explain=True,
+        dtype={
+            'Age': 'double',
+            'Fare': 'double',
+            'Pclass': 'int',
+        }
+    )
+    print(x_test.dtypes)
+    pred_onnx = infer_model(model_onnx, {
+        'Age': x_test['Age'].values,
+        'Fare': x_test['Fare'].values,
+        'Pclass': x_test['Pclass'].values,
+    })
+
+    assert np.allclose(pred_ebm, pred_onnx)

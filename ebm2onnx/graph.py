@@ -77,6 +77,13 @@ def create_initializer(graph, name, type, shape, value):
     )
 
 
+def strip_to_transients(graph):
+    return Graph(
+        generate_name=graph.generate_name,
+        transients=graph.transients,
+    )
+
+
 def merge(*args):
     g = None
 
