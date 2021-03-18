@@ -14,6 +14,7 @@ onnx_type_for={
     'float': onnx.TensorProto.FLOAT,
     'double': onnx.TensorProto.DOUBLE,
     'int': onnx.TensorProto.INT64,
+    'str': onnx.TensorProto.STRING,
 }
 
 
@@ -57,16 +58,42 @@ def to_onnx(model, name=None,
             part = ebm.get_bin_score_1d(additive_terms)(part)
             parts.append(part)
 
-        elif feature_type == 'interaction':
-            bins_0 = [np.NINF, np.NINF] + list(model.pair_preprocessor_.col_bin_edges_[feature_group[0]])
-            bins_1 = [np.NINF, np.NINF] + list(model.pair_preprocessor_.col_bin_edges_[feature_group[1]])
+        elif feature_type == 'categorical':
+            col_mapping = model.preprocessor_.col_mapping_[feature_group[0]]
             additive_terms = model.additive_terms_[feature_index]
 
-            input_0 = graph.strip_to_transients(inputs[feature_group[0]])
-            part_0 = ebm.get_bin_index_on_continuous_value(bins_0)(input_0)
-            input_1 = graph.strip_to_transients(inputs[feature_group[1]])
-            part_1 = ebm.get_bin_index_on_continuous_value(bins_1)(input_1)
-            part = graph.merge(part_0, part_1)
+            part = graph.create_input(root, feature_name, onnx.TensorProto.STRING, [None])
+            part = ops.flatten()(part)
+            inputs[feature_index] = part
+            part = ebm.get_bin_index_on_categorical_value(col_mapping)(part)
+            part = ebm.get_bin_score_1d(additive_terms)(part)
+            parts.append(part)
+
+        elif feature_type == 'interaction':
+            i_parts = []
+            for index in range(2):
+                i_feature_index = feature_group[index]
+                i_feature_type = model.feature_types[i_feature_index]
+
+                if i_feature_type == 'continuous':
+                    bins = [np.NINF, np.NINF] + list(model.pair_preprocessor_.col_bin_edges_[i_feature_index])
+                    input = graph.strip_to_transients(inputs[i_feature_index])
+                    i_parts.append(ebm.get_bin_index_on_continuous_value(bins)(input))
+
+                elif i_feature_type == 'categorical':
+                    col_mapping = model.preprocessor_.col_mapping_[i_feature_index]
+                    input = graph.strip_to_transients(inputs[i_feature_index])
+                    i_parts.append(ebm.get_bin_index_on_categorical_value(col_mapping)(input))
+
+                else:
+                    raise NotImplementedError(f"feature type {feature_type} is not supported in interactions")
+
+            #bins_1 = [np.NINF, np.NINF] + list(model.pair_preprocessor_.col_bin_edges_[feature_group[1]])
+            #input_1 = graph.strip_to_transients(inputs[feature_group[1]])
+            #part_1 = ebm.get_bin_index_on_continuous_value(bins_1)(input_1)
+
+            part = graph.merge(*i_parts)
+            additive_terms = model.additive_terms_[feature_index]
             part = ebm.get_bin_score_2d(np.array(additive_terms))(part)
             parts.append(part)
 

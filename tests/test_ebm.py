@@ -4,7 +4,7 @@ import ebm2onnx.operators as ops
 import onnx
 import numpy as np
 
-from .utils import assert_model_result
+from .utils import assert_model_result, infer_model
 
 
 def test_get_bin_index_on_continuous_value():
@@ -30,6 +30,34 @@ def test_get_bin_index_on_continuous_value():
             [5],
         ]]
     )
+
+
+def test_get_bin_index_on_categorical_value():
+    g = graph.create_graph()
+    i = graph.create_input(g, "i", onnx.TensorProto.STRING, [None, 1])
+
+    g = ebm.get_bin_index_on_categorical_value({
+        'foo': 1,
+        'bar': 2,
+        'biz': 3,
+    })(i)
+    g = graph.add_output(g, g.transients[0].name, onnx.TensorProto.INT64, [None, 1])
+
+    result = infer_model(graph.compile(g),
+        input={
+            'i': [["biz"], ["foo"], ["bar"], ["nan"], ["okif"]],
+        }
+    )
+    expected_result=[
+            [3],
+            [1],
+            [2],
+            [0],
+            [-1],
+        ]
+    assert len(expected_result) == len(result[0])
+    for i, r in enumerate(expected_result):
+        assert result[0][i] == r
 
 
 def test_get_bin_score_1d():

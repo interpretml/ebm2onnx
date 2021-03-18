@@ -1,5 +1,7 @@
+import numpy as np
 import onnx
 import ebm2onnx.operators as ops
+import ebm2onnx.operators_ml as mlops
 import ebm2onnx.graph as graph
 
 
@@ -23,6 +25,24 @@ def get_bin_index_on_continuous_value(bin_edges):
         return g
 
     return _get_bin_index_on_continuous_value
+
+
+def get_bin_index_on_categorical_value(col_mapping, missing_str=str(np.nan)):
+    def _get_bin_index_on_categorical_value(g):
+        ints = [0]
+        strings = [missing_str]
+        for k, v in col_mapping.items():
+            ints.append(v)
+            strings.append(k)
+
+        g = mlops.category_mapper(
+            cats_int64s=ints,
+            cats_strings=strings,
+        )(g)
+        g = ops.flatten()(g)
+        return g
+
+    return _get_bin_index_on_categorical_value
 
 
 def get_bin_score_1d(bin_scores):

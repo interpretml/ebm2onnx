@@ -11,7 +11,7 @@ import ebm2onnx
 from .utils import infer_model
 
 
-def train_titanic_binary_classification(interactions):
+def train_titanic_binary_classification(interactions, with_categorical=False):
     df = pd.read_csv(
         os.path.join('asset','titanic_train.csv'),
         #dtype= {
@@ -21,7 +21,11 @@ def train_titanic_binary_classification(interactions):
         #}
     )
     df = df.dropna()
+    feature_types=['continuous', 'continuous', 'continuous']
     feature_columns = ['Age', 'Fare', 'Pclass']
+    if with_categorical is True:
+        feature_columns.append('Embarked')
+        feature_types.append('categorical')
     label_column = "Survived"
 
     y = df[[label_column]]
@@ -29,7 +33,7 @@ def train_titanic_binary_classification(interactions):
     y_enc = le.fit_transform(y)
     x = df[feature_columns]
     x_train, x_test, y_train, y_test = train_test_split(x, y_enc)
-    model = ExplainableBoostingClassifier(interactions=interactions)
+    model = ExplainableBoostingClassifier(interactions=interactions, feature_types=feature_types)
     model.fit(x_train, y_train)
 
     return model, x_test, y_test
@@ -189,6 +193,32 @@ def test_predict_regression_with_interactions():
         'SibSp': x_test['SibSp'].values,
         'Fare': x_test['Fare'].values,
         'Pclass': x_test['Pclass'].values,
+    })
+
+    assert np.allclose(pred_ebm, pred_onnx[0])
+
+
+def test_predict_binary_classification_with_categorical():
+    model_ebm, x_test, y_test = train_titanic_binary_classification(interactions=2, with_categorical=True)
+    pred_ebm = model_ebm.predict(x_test)
+    print(model_ebm.feature_names)
+    print(model_ebm.feature_groups_)
+
+    model_onnx = ebm2onnx.to_onnx(
+        model_ebm,
+        dtype={
+            'Age': 'double',
+            'Fare': 'double',
+            'Pclass': 'int',
+            'Embarked': 'str'
+        }
+    )
+
+    pred_onnx = infer_model(model_onnx, {
+        'Age': x_test['Age'].values,
+        'Fare': x_test['Fare'].values,
+        'Pclass': x_test['Pclass'].values,
+        'Embarked': x_test['Embarked'].values,
     })
 
     assert np.allclose(pred_ebm, pred_onnx[0])
