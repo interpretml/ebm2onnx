@@ -110,3 +110,21 @@ def predict_proba(binary):
         return g
 
     return _predict_proba
+
+
+def predict_value():
+    """Final prediction step for regression
+
+    No operations are needed here, we just reshape the
+    [None, 1] scores to [None].
+    """
+    def _predict_value(g):
+        init_reshape = graph.create_initializer(
+            g, "reshape", onnx.TensorProto.INT64,
+            [1], [0],
+        )
+
+        g = ops.reshape()(graph.merge(g, init_reshape))
+        return g
+
+    return _predict_value

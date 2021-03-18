@@ -75,7 +75,10 @@ def to_onnx(model, name=None,
 
     # Add all scores, and intercept
     g = graph.merge(*parts)
-    g, scores_output_name = ebm.compute_class_score(model.intercept_[class_index])(g)
+    if type(model) is ExplainableBoostingClassifier:
+        g, scores_output_name = ebm.compute_class_score(model.intercept_[class_index])(g)
+    else: # regression
+        g, scores_output_name = ebm.compute_class_score(model.intercept_)(g)
 
     # post process
     if type(model) is ExplainableBoostingClassifier:
@@ -89,7 +92,8 @@ def to_onnx(model, name=None,
         else:
             raise ValueError(f"multi-class classficiation is not supported")        
     else:
-        raise ValueError(f"{type(model)} is not supported")
+        g = ebm.predict_value()(g)
+        g = graph.add_output(g, g.transients[0].name, onnx.TensorProto.FLOAT, [None])
 
     if explain is True:
         g = graph.add_output(g, scores_output_name, onnx.TensorProto.FLOAT, [None, len(model.feature_names)])

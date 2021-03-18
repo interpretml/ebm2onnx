@@ -3,7 +3,7 @@ import pytest
 import numpy as np
 import pandas as pd
 
-from interpret.glassbox import ExplainableBoostingClassifier
+from interpret.glassbox import ExplainableBoostingClassifier, ExplainableBoostingRegressor
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 
@@ -28,9 +28,25 @@ def train_titanic_binary_classification(interactions):
     le = LabelEncoder()
     y_enc = le.fit_transform(y)
     x = df[feature_columns]
-    #x = x.astype(np.float32)
     x_train, x_test, y_train, y_test = train_test_split(x, y_enc)
     model = ExplainableBoostingClassifier(interactions=interactions)
+    model.fit(x_train, y_train)
+
+    return model, x_test, y_test
+
+
+def train_titanic_regression(interactions):
+    df = pd.read_csv(os.path.join('asset','titanic_train.csv'))
+    df = df.dropna()
+    feature_columns = ['SibSp', 'Fare', 'Pclass']
+    label_column = "Age"
+
+    y = df[[label_column]]
+    le = LabelEncoder()
+    y_enc = le.fit_transform(y)
+    x = df[feature_columns]
+    x_train, x_test, y_train, y_test = train_test_split(x, y_enc)
+    model = ExplainableBoostingRegressor(interactions=interactions)
     model.fit(x_train, y_train)
 
     return model, x_test, y_test
@@ -54,13 +70,13 @@ def test_predict_binary_classification_without_interactions():
         'Pclass': x_test['Pclass'].values,
     })
 
-    assert np.allclose(pred_ebm, pred_onnx)
+    assert np.allclose(pred_ebm, pred_onnx[0])
 
 
 def test_predict_proba_binary_classification_without_interactions():
     model_ebm, x_test, y_test = train_titanic_binary_classification(interactions=0)
     pred_ebm = model_ebm.predict_proba(x_test)
-    pred_ebm_local = model_ebm.explain_local(x_test, y_test)
+    #pred_ebm_local = model_ebm.explain_local(x_test, y_test)
 
     model_onnx = ebm2onnx.to_onnx(
         model_ebm,
@@ -78,15 +94,8 @@ def test_predict_proba_binary_classification_without_interactions():
         'Fare': x_test['Fare'].values,
         'Pclass': x_test['Pclass'].values,
     })
-    
-    #print("ebm:")
-    #print(pred_ebm)
-    #print("onnx:")
-    #print(pred_onnx[0])
-    #print(pred_ebm_local.data(-1))
-    #print(pred_onnx[1])
-    
-    assert np.allclose(pred_ebm, pred_onnx)
+
+    assert np.allclose(pred_ebm, pred_onnx[0])
 
     '''
     for row in range(pred_ebm.shape[0]):
@@ -116,7 +125,7 @@ def test_predict_binary_classification_with_interactions():
         'Pclass': x_test['Pclass'].values,
     })
 
-    assert np.allclose(pred_ebm, pred_onnx)
+    assert np.allclose(pred_ebm, pred_onnx[0])
 
 
 def test_predict_proba_binary_classification_with_interactions():
@@ -140,4 +149,46 @@ def test_predict_proba_binary_classification_with_interactions():
         'Pclass': x_test['Pclass'].values,
     })
 
-    assert np.allclose(pred_ebm, pred_onnx)
+    assert np.allclose(pred_ebm, pred_onnx[0])
+
+
+def test_predict_regression_without_interactions():
+    model_ebm, x_test, y_test = train_titanic_regression(interactions=0)
+    pred_ebm = model_ebm.predict(x_test)
+
+    model_onnx = ebm2onnx.to_onnx(
+        model_ebm,
+        dtype={
+            'SibSp': 'int',
+            'Fare': 'double',
+            'Pclass': 'int',
+        },
+    )
+    pred_onnx = infer_model(model_onnx, {
+        'SibSp': x_test['SibSp'].values,
+        'Fare': x_test['Fare'].values,
+        'Pclass': x_test['Pclass'].values,
+    })
+
+    assert np.allclose(pred_ebm, pred_onnx[0])
+
+
+def test_predict_regression_with_interactions():
+    model_ebm, x_test, y_test = train_titanic_regression(interactions=2)
+    pred_ebm = model_ebm.predict(x_test)
+
+    model_onnx = ebm2onnx.to_onnx(
+        model_ebm,
+        dtype={
+            'SibSp': 'int',
+            'Fare': 'double',
+            'Pclass': 'int',
+        },
+    )
+    pred_onnx = infer_model(model_onnx, {
+        'SibSp': x_test['SibSp'].values,
+        'Fare': x_test['Fare'].values,
+        'Pclass': x_test['Pclass'].values,
+    })
+
+    assert np.allclose(pred_ebm, pred_onnx[0])
