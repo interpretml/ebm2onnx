@@ -66,6 +66,6 @@ Get Started
             'Pclass': 'int',
         }
     )
-    onnx.save_model(onnx_model, 'ebm_model.onnx)
+    onnx.save_model(onnx_model, 'ebm_model.onnx')
 
 
