@@ -1,3 +1,4 @@
 onnx>=1.8
 interpret-core>=0.2
 numpy>=1.19
+interpret>=0.2
