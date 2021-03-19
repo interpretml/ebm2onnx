@@ -46,10 +46,21 @@ def get_bin_index_on_categorical_value(col_mapping, missing_str=str(np.nan)):
 
 
 def get_bin_score_1d(bin_scores):
-    def _get_bin_score_1d(g):
-        init_bin_scores = graph.create_initializer(g, "bin_scores", onnx.TensorProto.FLOAT, [len(bin_scores), 1], bin_scores)
+    if len(bin_scores.shape) == 1:
+        bin_scores= bin_scores.reshape((-1, 1))
 
-        g = ops.gather_elements()(graph.merge(init_bin_scores, g))
+    def _get_bin_score_1d(g):
+        init_bin_scores = graph.create_initializer(
+            g, "bin_scores", onnx.TensorProto.FLOAT,
+            bin_scores.shape, bin_scores.flatten())
+
+        init_reshape = graph.create_initializer(
+            g, "score_reshape", onnx.TensorProto.INT64,
+            [3], [-1, 1, bin_scores.shape[1]],
+        )
+
+        g = ops.gather_nd()(graph.merge(init_bin_scores, g))  # gather score for each class
+        g = ops.reshape()(graph.merge(g, init_reshape))
         return g
 
     return _get_bin_score_1d
@@ -63,28 +74,40 @@ def get_bin_score_2d(bin_scores):
             bin_scores.flatten(),
         )
 
+        init_reshape = graph.create_initializer(
+            g, "score_reshape", onnx.TensorProto.INT64,
+            [3], [-1, 1, 1],
+        )
+
         g = ops.concat(axis=1)(g)
         g = ops.gather_nd()(graph.merge(init_bin_scores, g))
-        g = ops.flatten()(g)
+        g = ops.reshape()(graph.merge(g, init_reshape))
         return g
 
     return _get_bin_score_2d
 
 
 def compute_class_score(intercept):
+    """
+    intercept shape: [class_count]
+    input shapes: [batch_size x 1 x class_count]
+    output shape: [batch_size x class_count]
+
+    score output shape: [batch_size x feature_count x class_count]
+    """
     def _compute_class_score(g):
         init_intercept = graph.create_initializer(
             g, "intercept", onnx.TensorProto.FLOAT,
-            [1], [intercept],
+            [intercept.shape[0]], intercept,
         )
         init_sum_axis = graph.create_initializer(
-            g, "intercept", onnx.TensorProto.INT64,
+            g, "sum_axis", onnx.TensorProto.INT64,
             [1], [1],
         )
 
         g = ops.concat(axis=1)(g)
         scores_output_name = g.transients[0].name
-        g = ops.reduce_sum()(graph.merge(g, init_sum_axis))
+        g = ops.reduce_sum(keepdims=0)(graph.merge(g, init_sum_axis))
         g = ops.add()(graph.merge(g, init_intercept))
         return g, scores_output_name
 
@@ -99,12 +122,13 @@ def predict_class(binary):
                 [2], [0.0, 1.0],
             )
 
-            init_reshape = graph.create_initializer(
-                g, "reshape", onnx.TensorProto.INT64,
-                [1], [0],
-            )
-
             g = ops.mul()(graph.merge(g, init_zeros))
+
+        init_reshape = graph.create_initializer(
+            g, "reshape", onnx.TensorProto.INT64,
+            [1], [0],
+        )
+
         g = ops.argmax(axis=1)(g)
         g = ops.reshape()(graph.merge(g, init_reshape))
         return g

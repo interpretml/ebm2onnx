@@ -7,6 +7,7 @@ from interpret.glassbox import ExplainableBoostingClassifier, ExplainableBoostin
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 
+import onnx
 import ebm2onnx
 from .utils import infer_model
 
@@ -51,6 +52,26 @@ def train_titanic_regression(interactions):
     x = df[feature_columns]
     x_train, x_test, y_train, y_test = train_test_split(x, y_enc)
     model = ExplainableBoostingRegressor(interactions=interactions)
+    model.fit(x_train, y_train)
+
+    return model, x_test, y_test
+
+
+def train_bank_churners_multiclass_classification():
+    df = pd.read_csv(
+        os.path.join('asset','BankChurners.csv'),
+    )
+    df = df.dropna()
+    feature_types=['continuous', 'continuous', 'categorical', 'continuous']
+    feature_columns = ['Customer_Age', 'Dependent_count', 'Education_Level', 'Credit_Limit']
+    label_column = "Income_Category"
+
+    y = df[[label_column]]
+    le = LabelEncoder()
+    y_enc = le.fit_transform(y)
+    x = df[feature_columns]
+    x_train, x_test, y_train, y_test = train_test_split(x, y_enc)
+    model = ExplainableBoostingClassifier(interactions=0, feature_types=feature_types)
     model.fit(x_train, y_train)
 
     return model, x_test, y_test
@@ -219,6 +240,56 @@ def test_predict_binary_classification_with_categorical():
         'Fare': x_test['Fare'].values,
         'Pclass': x_test['Pclass'].values,
         'Embarked': x_test['Embarked'].values,
+    })
+
+    assert np.allclose(pred_ebm, pred_onnx[0])
+
+
+def test_predict_multiclass_classification():
+    model_ebm, x_test, y_test = train_bank_churners_multiclass_classification()
+    pred_ebm = model_ebm.predict(x_test)
+
+    model_onnx = ebm2onnx.to_onnx(
+        model_ebm,
+        dtype={
+            'Customer_Age': 'int',
+            'Dependent_count': 'int',
+            'Education_Level': 'str',
+            'Credit_Limit': 'double',
+        }
+    )
+
+    pred_onnx = infer_model(model_onnx, {
+        'Customer_Age': x_test['Customer_Age'].values,
+        'Dependent_count': x_test['Dependent_count'].values,
+        'Education_Level': x_test['Education_Level'].values,
+        'Credit_Limit': x_test['Credit_Limit'].values,
+    })
+
+    assert np.allclose(pred_ebm, pred_onnx[0])
+
+
+def test_predict_proba_multiclass_classification():
+    model_ebm, x_test, y_test = train_bank_churners_multiclass_classification()
+    pred_ebm = model_ebm.predict_proba(x_test)
+
+    model_onnx = ebm2onnx.to_onnx(
+        model_ebm,
+        predict_proba=True,
+        explain=True,
+        dtype={
+            'Customer_Age': 'int',
+            'Dependent_count': 'int',
+            'Education_Level': 'str',
+            'Credit_Limit': 'double',
+        }
+    )
+
+    pred_onnx = infer_model(model_onnx, {
+        'Customer_Age': x_test['Customer_Age'].values,
+        'Dependent_count': x_test['Dependent_count'].values,
+        'Education_Level': x_test['Education_Level'].values,
+        'Credit_Limit': x_test['Credit_Limit'].values,
     })
 
     assert np.allclose(pred_ebm, pred_onnx[0])

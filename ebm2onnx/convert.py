@@ -36,7 +36,7 @@ def to_onnx(model, name=None,
     target_opset = target_opset or get_latest_opset_version()
     root = graph.create_graph()
 
-    class_index=0  # model.classes_    => [0,1]
+    class_index=0
     inputs = [None for _ in model.feature_names]
     parts = []
 
@@ -88,10 +88,6 @@ def to_onnx(model, name=None,
                 else:
                     raise NotImplementedError(f"feature type {feature_type} is not supported in interactions")
 
-            #bins_1 = [np.NINF, np.NINF] + list(model.pair_preprocessor_.col_bin_edges_[feature_group[1]])
-            #input_1 = graph.strip_to_transients(inputs[feature_group[1]])
-            #part_1 = ebm.get_bin_index_on_continuous_value(bins_1)(input_1)
-
             part = graph.merge(*i_parts)
             additive_terms = model.additive_terms_[feature_index]
             part = ebm.get_bin_score_2d(np.array(additive_terms))(part)
@@ -100,15 +96,10 @@ def to_onnx(model, name=None,
         else:
             raise NotImplementedError(f"feature type {feature_type} is not supported")
 
-    # Add all scores, and intercept
+    # compute scores, predict and proba
     g = graph.merge(*parts)
     if type(model) is ExplainableBoostingClassifier:
-        g, scores_output_name = ebm.compute_class_score(model.intercept_[class_index])(g)
-    else: # regression
         g, scores_output_name = ebm.compute_class_score(model.intercept_)(g)
-
-    # post process
-    if type(model) is ExplainableBoostingClassifier:
         if len(model.classes_) == 2: # binary classification
             if predict_proba is False:
                 g = ebm.predict_class(binary=True)(g)
@@ -117,14 +108,24 @@ def to_onnx(model, name=None,
                 g = ebm.predict_proba(binary=True)(g)
                 g = graph.add_output(g, g.transients[0].name, onnx.TensorProto.FLOAT, [None, len(model.classes_)])
         else:
-            raise ValueError(f"multi-class classficiation is not supported")        
-    else:
+            if predict_proba is False:
+                g = ebm.predict_class(binary=False)(g)
+                g = graph.add_output(g, g.transients[0].name, onnx.TensorProto.INT64, [None])
+            else:
+                g = ebm.predict_proba(binary=False)(g)
+                g = graph.add_output(g, g.transients[0].name, onnx.TensorProto.FLOAT, [None, len(model.classes_)])
+    elif type(model) is ExplainableBoostingRegressor:
+        g, scores_output_name = ebm.compute_class_score(np.array([model.intercept_]))(g)
         g = ebm.predict_value()(g)
         g = graph.add_output(g, g.transients[0].name, onnx.TensorProto.FLOAT, [None])
+    else:
+        raise NotImplementedError("{} models are not supported".format(type(model)))
 
     if explain is True:
-        g = graph.add_output(g, scores_output_name, onnx.TensorProto.FLOAT, [None, len(model.feature_names)])
-    #print("graph:")
-    #print(g.nodes)
+        if len(model.classes_) == 2:
+            g = graph.add_output(g, scores_output_name, onnx.TensorProto.FLOAT, [None, len(model.feature_names)])
+        else:
+            g = graph.add_output(g, scores_output_name, onnx.TensorProto.FLOAT, [None, len(model.feature_names), len(model.classes_)])
+
     model = graph.compile(g)
     return model
