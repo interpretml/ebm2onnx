@@ -111,11 +111,16 @@ def flatten(axis=1):
     return _flatten
 
 
-def gather_elements():
+def gather_elements(axis=0):
     def _gather_elements(g):
         gather_elements_result_name = g.generate_name('gather_elements_result')        
         nodes = [
-            onnx.helper.make_node("GatherElements", [g.transients[0].name, g.transients[1].name], [gather_elements_result_name]),
+            onnx.helper.make_node(
+                "GatherElements",
+                [g.transients[0].name, g.transients[1].name],
+                [gather_elements_result_name],
+                axis=axis,
+            ),
         ]
 
         return g._replace(
