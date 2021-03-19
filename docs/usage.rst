@@ -2,6 +2,6 @@
 Usage
 =====
 
-To use ebm-onnx in a project::
+To use ebm2onnx in a project::
 
     import ebm2onnx

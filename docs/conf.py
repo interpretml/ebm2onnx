@@ -46,8 +46,8 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = 'ebm-onnx'
-copyright = "2021, Romain Picard"
+project = 'ebm2onnx'
+copyright = "2021, SoftAtHome"
 author = "Romain Picard"
 
 # The version info for the project you're documenting, acts as replacement
@@ -128,7 +128,7 @@ latex_elements = {
 # [howto, manual, or own class]).
 latex_documents = [
     (master_doc, 'ebm2onnx.tex',
-     'ebm-onnx Documentation',
+     'ebm2onnx Documentation',
      'Romain Picard', 'manual'),
 ]
 
@@ -139,7 +139,7 @@ latex_documents = [
 # (source start file, name, description, authors, manual section).
 man_pages = [
     (master_doc, 'ebm2onnx',
-     'ebm-onnx Documentation',
+     'ebm2onnx Documentation',
      [author], 1)
 ]
 
@@ -151,7 +151,7 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
     (master_doc, 'ebm2onnx',
-     'ebm-onnx Documentation',
+     'ebm2onnx Documentation',
      author,
      'ebm2onnx',
      'One line description of project.',
