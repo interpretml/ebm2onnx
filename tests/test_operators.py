@@ -218,6 +218,34 @@ def test_concat():
     )
 
 
+def test_expand():
+    g = graph.create_graph()
+
+    shape = graph.create_initializer(g, "shape", onnx.TensorProto.INT64, [2], [4, 3])
+    i = graph.create_input(g, "i", onnx.TensorProto.FLOAT, [None, 1])
+
+    l = ops.expand()(graph.merge(i, shape))
+    l = graph.add_output(l, l.transients[0].name, onnx.TensorProto.FLOAT, [None, 3])
+
+    assert_model_result(l,
+        input={
+            'i': [
+                [0.1],
+                [1.2],
+                [11],
+                [4.2],
+            ]
+        },
+        expected_result=[[
+            [0.1, 0.1, 0.1],
+            [1.2, 1.2, 1.2],
+            [11, 11, 11],
+            [4.2, 4.2, 4.2]
+        ]],
+    )
+
+
+
 def test_reduce_sum():
     g = graph.create_graph()
 
