@@ -20,7 +20,7 @@ Ebm2onnx
 
 
 
-`EBM<https://github.com/interpretml/interpret>`_ model serialization to ONNX
+`EBM <https://github.com/interpretml/interpret>`_ model serialization to ONNX
 
 
 Features
