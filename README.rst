@@ -20,7 +20,9 @@ Ebm2onnx
 
 
 
-`EBM <https://github.com/interpretml/interpret>`_ model serialization to ONNX
+Ebm2onnx is an `EBM <https://github.com/interpretml/interpret>`_ model
+serialization to ONNX. It allows to run an EBM model on any ONNX compliant
+runtime.
 
 
 Features
@@ -28,14 +30,17 @@ Features
 
 * Binary classification
 * Regression
-* Continous variables
+* Continuous variables
 * Categorical variables
 * Interactions
-* Multi-class classfication (support is still experimental in EBM)
+* Multi-class classification (support is still experimental in EBM)
 
+The export of the models is tested against `ONNX Runtime <https://github.com/Microsoft/onnxruntime>`_. 
 
 Get Started
 ------------
+
+Train an EBM model:
 
 .. code:: python
 
@@ -57,7 +62,13 @@ Get Started
     )
     model.fit(x_train, y_train)
 
-    # convert to onnx
+
+Then you can convert it to ONNX in a single function call:
+
+.. code:: python
+
+    import ebm2onnx
+
     onnx_model = ebm2onnx.to_onnx(
         model,
         dtype={
