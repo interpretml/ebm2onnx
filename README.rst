@@ -18,6 +18,8 @@ Ebm2onnx
         :target: https://ebm2onnx.readthedocs.io/en/latest/?version=latest
         :alt: Documentation Status
 
+.. image:: https://mybinder.org/badge_logo.svg
+    :target: https://mybinder.org/v2/gh/SoftAtHome/ebm2onnx/master?urlpath=notebooks%2Fexamples%2Fconvert.ipynb
 
 
 Ebm2onnx is an `EBM <https://github.com/interpretml/interpret>`_ model
