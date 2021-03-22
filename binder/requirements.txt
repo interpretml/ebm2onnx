@@ -3,3 +3,4 @@ numpy
 pandas
 onnxruntime
 plotly
+matplotlib
