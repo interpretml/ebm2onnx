@@ -36,6 +36,6 @@ setup(
     name='ebm2onnx',
     packages=find_packages(include=['ebm2onnx']),
     url='https://github.com/SoftAtHome/ebm2onnx.git',
-    version='version='1.0.1'',
+    version='1.0.1',
     zip_safe=True,
 )
