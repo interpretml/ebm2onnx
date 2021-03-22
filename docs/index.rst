@@ -8,9 +8,7 @@ Welcome to ebm2onnx's documentation!
    readme
    installation
    usage
-   modules
-   contributing
-   history
+   reference
 
 Indices and tables
 ==================

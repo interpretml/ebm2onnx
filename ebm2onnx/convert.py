@@ -25,16 +25,24 @@ def infer_features_dtype(dtype, feature_name):
 
     return feature_dtype
 
-def to_onnx(model, name=None,
-            target_opset=None,
+def to_onnx(model, dtype, name=None,
             predict_proba=False,
-            explain=False,
-            dtype=None,
+            explain=False
             ):
+    """Converts an EBM model to ONNX
+
+    Args:
+        model: The EBM model, trained with interpretml
+        dtype: A dict containing the type of each input feature. Types are expressed as strings, the following values are supported: float, double, int, str.
+        name: [Optional] The name of the model
+        predict_proba: [Optional] For classification models, output prediction probabilities instead of class
+        explain: [Optional] Adds an additional output with the score per feature per class
+
+    Returns:
+        An ONNX model.
     """
-    """
-    target_opset = target_opset or get_latest_opset_version()
-    root = graph.create_graph()
+    #target_opset = target_opset or get_latest_opset_version()
+    root = graph.create_graph(name=name)
 
     class_index=0
     inputs = [None for _ in model.feature_names]
