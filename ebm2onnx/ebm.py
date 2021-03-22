@@ -131,6 +131,7 @@ def predict_class(binary):
 
         g = ops.argmax(axis=1)(g)
         g = ops.reshape()(graph.merge(g, init_reshape))
+        g = ops.identity("predict")(g)
         return g
 
     return _predict_class
@@ -151,6 +152,7 @@ def predict_proba(binary):
 
             g = ops.mul()(graph.merge(g, init_zeros))
         g = ops.softmax(axis=1)(g)
+        g = ops.identity("predict")(g)
         return g
 
     return _predict_proba
@@ -169,6 +171,7 @@ def predict_value():
         )
 
         g = ops.reshape()(graph.merge(g, init_reshape))
+        g = ops.identity("predict")(g)
         return g
 
     return _predict_value

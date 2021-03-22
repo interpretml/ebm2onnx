@@ -155,6 +155,23 @@ def gather_nd():
     return _gather_nd
 
 
+def identity(name):
+    def _identity(g):
+        identity_name = g.generate_name(name)
+        nodes = [
+            onnx.helper.make_node("Identity", [g.transients[0].name], [identity_name]),
+        ]
+
+        return g._replace(
+            nodes=graph.extend(g.nodes, nodes),
+            transients=[
+                 onnx.helper.make_tensor_value_info(identity_name, onnx.TensorProto.UNDEFINED, []),
+            ],
+        )
+
+    return _identity
+
+
 def less():
     def _less(g):        
         less_result_name = g.generate_name('less_result')        

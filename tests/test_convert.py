@@ -14,7 +14,7 @@ from .utils import infer_model
 
 def train_titanic_binary_classification(interactions, with_categorical=False):
     df = pd.read_csv(
-        os.path.join('asset','titanic_train.csv'),
+        os.path.join('examples','titanic_train.csv'),
         #dtype= {
         #    'Age': np.float32,
         #    'Fare': np.float32,
@@ -41,7 +41,7 @@ def train_titanic_binary_classification(interactions, with_categorical=False):
 
 
 def train_titanic_regression(interactions):
-    df = pd.read_csv(os.path.join('asset','titanic_train.csv'))
+    df = pd.read_csv(os.path.join('examples','titanic_train.csv'))
     df = df.dropna()
     feature_columns = ['SibSp', 'Fare', 'Pclass']
     label_column = "Age"
@@ -59,7 +59,7 @@ def train_titanic_regression(interactions):
 
 def train_bank_churners_multiclass_classification():
     df = pd.read_csv(
-        os.path.join('asset','BankChurners.csv'),
+        os.path.join('examples','BankChurners.csv'),
     )
     df = df.dropna()
     feature_types=['continuous', 'continuous', 'categorical', 'continuous']
