@@ -2,3 +2,4 @@ ebm2onnx
 numpy
 pandas
 onnxruntime
+plotly
