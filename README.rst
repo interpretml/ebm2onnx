@@ -15,11 +15,11 @@ Ebm2onnx
     :alt: Code Coverage
 
 .. image:: https://readthedocs.org/projects/ebm2onnx/badge/?version=latest
-        :target: https://ebm2onnx.readthedocs.io/en/latest/?version=latest
-        :alt: Documentation Status
+    :target: https://ebm2onnx.readthedocs.io/en/latest/?version=latest
+    :alt: Documentation Status
 
 .. image:: https://mybinder.org/badge_logo.svg
-    :target: https://mybinder.org/v2/gh/SoftAtHome/ebm2onnx/master?urlpath=notebooks%2Fexamples%2Fconvert.ipynb
+    :target: https://mybinder.org/v2/gh/SoftAtHome/ebm2onnx/master?filepath=examples%2Fconvert.ipynb
 
 
 Ebm2onnx is an `EBM <https://github.com/interpretml/interpret>`_ model
