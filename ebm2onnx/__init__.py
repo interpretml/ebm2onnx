@@ -2,6 +2,6 @@
 
 __author__ = """Romain Picard"""
 __email__ = 'romain.picard@softathome.com'
-__version__ = '__version__ = '1.0.0''
+__version__ = '__version__ = '1.0.1''
 
 from .convert import to_onnx
