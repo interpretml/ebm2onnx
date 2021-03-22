@@ -12,7 +12,7 @@ with open('HISTORY.rst') as history_file:
 
 requirements = [
     'onnx>=1.8',
-    'interpret-core>=0.2',
+    'interpret-core[required,ebm]>=0.2',
  ]
 
 setup(
