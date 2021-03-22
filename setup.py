@@ -7,9 +7,6 @@ from setuptools import setup, find_packages
 with open('README.rst') as readme_file:
     readme = readme_file.read()
 
-with open('HISTORY.rst') as history_file:
-    history = history_file.read()
-
 requirements = [
     'onnx>=1.8',
     'interpret-core[required,ebm]>=0.2',
@@ -33,7 +30,7 @@ setup(
     description="EBM model serialization to ONNX",
     install_requires=requirements,
     license="MIT license",
-    long_description=readme + '\n\n' + history,
+    long_description=readme,
     include_package_data=True,
     keywords='ebm2onnx',
     name='ebm2onnx',
