@@ -3,8 +3,8 @@ from collections import namedtuple
 import onnx
 
 
-Graph = namedtuple('Graph', ['generate_name','inputs', 'outputs', 'transients', 'nodes', 'initializers', 'name'])
-Graph.__new__.__defaults__ = ([], [], [], [], [], "")
+Graph = namedtuple('Graph', ['generate_name','inputs', 'outputs', 'transients', 'nodes', 'initializers'])
+Graph.__new__.__defaults__ = ([], [], [], [], [])
 
 
 def create_name_generator():
@@ -34,18 +34,17 @@ def pipe(*args):
     pass
 
 
-def create_graph(name=""):
+def create_graph():
     return Graph(
-        name=name,
         generate_name=create_name_generator()
     )
 
-def compile(graph):
+def compile(graph, name="ebm"):
     #outputs = graph.transients
 
     graph = onnx.helper.make_graph(
         nodes=graph.nodes,
-        name=graph.name,
+        name=name,
         inputs=graph.inputs,    
         outputs=graph.outputs,
         initializer=graph.initializers,

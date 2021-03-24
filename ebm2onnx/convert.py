@@ -25,7 +25,7 @@ def infer_features_dtype(dtype, feature_name):
 
     return feature_dtype
 
-def to_onnx(model, dtype, name=None,
+def to_onnx(model, dtype, name="ebm",
             predict_proba=False,
             explain=False
             ):
@@ -42,7 +42,7 @@ def to_onnx(model, dtype, name=None,
         An ONNX model.
     """
     #target_opset = target_opset or get_latest_opset_version()
-    root = graph.create_graph(name=name)
+    root = graph.create_graph()
 
     class_index=0
     inputs = [None for _ in model.feature_names]
@@ -135,5 +135,5 @@ def to_onnx(model, dtype, name=None,
         else:
             g = graph.add_output(g, scores_output_name, onnx.TensorProto.FLOAT, [None, len(model.feature_names), len(model.classes_)])
 
-    model = graph.compile(g)
+    model = graph.compile(g, name=name)
     return model
