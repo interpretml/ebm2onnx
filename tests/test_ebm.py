@@ -43,7 +43,7 @@ def test_get_bin_index_on_categorical_value():
     })(i)
     g = graph.add_output(g, g.transients[0].name, onnx.TensorProto.INT64, [None, 1])
 
-    result = infer_model(graph.compile(g),
+    result = infer_model(graph.compile(g, target_opset=13),
         input={
             'i': [["biz"], ["foo"], ["bar"], ["nan"], ["okif"]],
         }

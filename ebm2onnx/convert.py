@@ -27,7 +27,8 @@ def infer_features_dtype(dtype, feature_name):
 
 def to_onnx(model, dtype, name="ebm",
             predict_proba=False,
-            explain=False
+            explain=False,
+            target_opset=None,
             ):
     """Converts an EBM model to ONNX
 
@@ -37,11 +38,12 @@ def to_onnx(model, dtype, name="ebm",
         name: [Optional] The name of the model
         predict_proba: [Optional] For classification models, output prediction probabilities instead of class
         explain: [Optional] Adds an additional output with the score per feature per class
+        target_opset: [Optional] The target onnx opset version to use
 
     Returns:
         An ONNX model.
     """
-    #target_opset = target_opset or get_latest_opset_version()
+    target_opset = target_opset or get_latest_opset_version()
     root = graph.create_graph()
 
     class_index=0
@@ -135,5 +137,5 @@ def to_onnx(model, dtype, name="ebm",
         else:
             g = graph.add_output(g, scores_output_name, onnx.TensorProto.FLOAT, [None, len(model.feature_names), len(model.classes_)])
 
-    model = graph.compile(g, name=name)
+    model = graph.compile(g, target_opset, name=name)
     return model

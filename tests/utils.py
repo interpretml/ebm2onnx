@@ -24,7 +24,7 @@ def infer_model(model, input):
 
 
 def assert_model_result(g, input, expected_result, atol=1e-08, save_path=None):
-    model = graph.compile(g)
+    model = graph.compile(g, target_opset=13)
     _, filename = tempfile.mkstemp()
     try:
         onnx.save_model(model, filename)

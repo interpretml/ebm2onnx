@@ -18,7 +18,7 @@ def test_category_mapper_str2int():
     )(i)
     l = graph.add_output(l, l.transients[0].name, onnx.TensorProto.INT64, [None])
     
-    result = infer_model(graph.compile(l),
+    result = infer_model(graph.compile(l, target_opset=13),
         input={
             'i': ["biz", "foo", "bar", "flah"],
         }
@@ -40,7 +40,7 @@ def test_category_mapper_int2str():
     )(i)
     l = graph.add_output(l, l.transients[0].name, onnx.TensorProto.STRING, [None])
     
-    result = infer_model(graph.compile(l),
+    result = infer_model(graph.compile(l, target_opset=13),
         input={
             'i': [2, 0, 1, 8],
         }

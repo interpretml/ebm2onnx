@@ -39,7 +39,7 @@ def create_graph():
         generate_name=create_name_generator()
     )
 
-def compile(graph, name="ebm"):
+def compile(graph, target_opset, name="ebm"):
     #outputs = graph.transients
 
     graph = onnx.helper.make_graph(
@@ -49,7 +49,9 @@ def compile(graph, name="ebm"):
         outputs=graph.outputs,
         initializer=graph.initializers,
     )
-    return onnx.helper.make_model(graph, producer_name='ebm2onnx')
+    model = onnx.helper.make_model(graph, producer_name='ebm2onnx')
+    model.opset_import[0].version = target_opset
+    return model
 
 def create_input(graph, name, type, shape):
     input = onnx.helper.make_tensor_value_info(name , type, shape)
