@@ -106,7 +106,6 @@ def test_predict_proba_binary_classification_without_interactions():
     model_onnx = ebm2onnx.to_onnx(
         model_ebm,
         predict_proba=True,
-        # explain=True,
         dtype={
             'Age': 'double',
             'Fare': 'double',
@@ -130,6 +129,30 @@ def test_predict_proba_binary_classification_without_interactions():
         print(model_ebm.additive_terms_[0])
         assert pred_ebm[row, 0] == pytest.approx(pred_onnx[0][row, 0])
     '''
+
+
+def test_predict_binary_classification_wo_interactions_w_explain():
+    model_ebm, x_test, y_test = train_titanic_binary_classification(interactions=0)
+    pred_ebm = model_ebm.predict(x_test)
+
+    model_onnx = ebm2onnx.to_onnx(
+        model_ebm,
+        explain=True,
+        dtype={
+            'Age': 'double',
+            'Fare': 'double',
+            'Pclass': 'int',
+        }
+    )
+    pred_onnx = infer_model(model_onnx, {
+        'Age': x_test['Age'].values,
+        'Fare': x_test['Fare'].values,
+        'Pclass': x_test['Pclass'].values,
+    })
+
+    assert len(pred_onnx) == 2
+    assert np.allclose(pred_ebm, pred_onnx[0])
+
 
 def test_predict_binary_classification_with_interactions():
     model_ebm, x_test, y_test = train_titanic_binary_classification(interactions=2)
@@ -292,4 +315,5 @@ def test_predict_proba_multiclass_classification():
         'Credit_Limit': x_test['Credit_Limit'].values,
     })
 
+    assert len(pred_onnx) == 2
     assert np.allclose(pred_ebm, pred_onnx[0])

@@ -131,7 +131,7 @@ def to_onnx(model, dtype, name="ebm",
 
     if explain is True:
         if len(model.classes_) == 2:
-            g = graph.add_output(g, scores_output_name, onnx.TensorProto.FLOAT, [None, len(model.feature_names)])
+            g = graph.add_output(g, scores_output_name, onnx.TensorProto.FLOAT, [None, len(model.feature_names), 1])
         else:
             g = graph.add_output(g, scores_output_name, onnx.TensorProto.FLOAT, [None, len(model.feature_names), len(model.classes_)])
 
