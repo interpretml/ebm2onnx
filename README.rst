@@ -22,9 +22,8 @@ Ebm2onnx
     :target: https://mybinder.org/v2/gh/SoftAtHome/ebm2onnx/master?filepath=examples%2Fconvert.ipynb
 
 
-Ebm2onnx is an `EBM <https://github.com/interpretml/interpret>`_ model
-serialization to ONNX. It allows to run an EBM model on any ONNX compliant
-runtime.
+Ebm2onnx converts `EBM <https://github.com/interpretml/interpret>`_ models to
+ONNX. It allows to run an EBM model on any ONNX compliant runtime.
 
 
 Features
@@ -36,6 +35,7 @@ Features
 * Categorical variables
 * Interactions
 * Multi-class classification (support is still experimental in EBM)
+* Expose local explanations
 
 The export of the models is tested against `ONNX Runtime <https://github.com/Microsoft/onnxruntime>`_. 
 
@@ -82,3 +82,8 @@ Then you can convert it to ONNX in a single function call:
     onnx.save_model(onnx_model, 'ebm_model.onnx')
 
 
+Try it live
+-------------
+
+- You can test the conversion on a live notebook `here <https://mybinder.org/v2/gh/SoftAtHome/ebm2onnx/master?filepath=examples%2Fconvert.ipynb>`_.
+- You can test local explanations on a live notebook `here <https://mybinder.org/v2/gh/SoftAtHome/ebm2onnx/master?filepath=examples%2Fexplain_local.ipynb>`_.
