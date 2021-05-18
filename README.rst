@@ -85,5 +85,5 @@ Then you can convert it to ONNX in a single function call:
 Try it live
 -------------
 
-- You can test the conversion on a live notebook `here <https://mybinder.org/v2/gh/SoftAtHome/ebm2onnx/master?filepath=examples%2Fconvert.ipynb>`_.
-- You can test local explanations on a live notebook `here <https://mybinder.org/v2/gh/SoftAtHome/ebm2onnx/master?filepath=examples%2Fexplain_local.ipynb>`_.
+- You can live test the `model conversion <https://mybinder.org/v2/gh/SoftAtHome/ebm2onnx/master?filepath=examples%2Fconvert.ipynb>`_.
+- You can live test `local explanations <https://mybinder.org/v2/gh/SoftAtHome/ebm2onnx/master?filepath=examples%2Fexplain_local.ipynb>`_.
