@@ -26,6 +26,41 @@ def infer_features_dtype(dtype, feature_name):
 
     return feature_dtype
 
+
+def get_dtype_from_pandas(df):
+    """Infers the features names and types from a pandas dataframe
+
+    Example:
+        >>>import ebm2onnx
+        >>>
+        >>>dtype = ebm2onnx.get_dtype_from_pandas(my_df)
+    Args:
+        df: A pandas dataframe
+
+    Returns:
+        A dict that can be used as the type argument of the to_onnx function.
+    """
+    dtype = {}
+    df_types = df.dtypes.values
+    for i, k in enumerate(df.dtypes.index):
+        if df_types[i] == np.float32:
+            dtype[k] = 'float'
+        elif df_types[i] == np.double:
+            dtype[k] = 'double'
+        elif df_types[i] == int:
+            dtype[k] = 'int'
+        elif df_types[i] == bool:
+            dtype[k] = 'bool'
+        elif df_types[i] == str:
+            dtype[k] = 'str'
+        elif df_types[i] == object:
+            dtype[k] = 'str'
+        else:
+            raise ValueError("column {} is of type {} that is not supported".format(k, df_types[i]))
+
+    return dtype
+
+
 def to_onnx(model, dtype, name="ebm",
             predict_proba=False,
             explain=False,
