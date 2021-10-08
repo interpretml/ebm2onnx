@@ -6,12 +6,12 @@ Ebm2onnx
 .. image:: https://img.shields.io/pypi/v/ebm2onnx.svg
         :target: https://pypi.python.org/pypi/ebm2onnx
 
-.. image:: https://github.com/SoftAtHome/ebm2onnx/actions/workflows/ci.yml/badge.svg
-    :target: https://github.com/SoftAtHome/ebm2onnx/actions/workflows/ci.yml
+.. image:: https://github.com/interpretml/ebm2onnx/actions/workflows/ci.yml/badge.svg
+    :target: https://github.com/interpretml/ebm2onnx/actions/workflows/ci.yml
     :alt: CI
 
-.. image:: https://coveralls.io/repos/github/SoftAtHome/ebm2onnx/badge.svg?branch=master
-    :target: https://coveralls.io/github/SoftAtHome/ebm2onnx?branch=master
+.. image:: https://coveralls.io/repos/github/interpretml/ebm2onnx/badge.svg?branch=master
+    :target: https://coveralls.io/github/interpretml/ebm2onnx?branch=master
     :alt: Code Coverage
 
 .. image:: https://readthedocs.org/projects/ebm2onnx/badge/?version=latest
@@ -19,7 +19,7 @@ Ebm2onnx
     :alt: Documentation Status
 
 .. image:: https://mybinder.org/badge_logo.svg
-    :target: https://mybinder.org/v2/gh/SoftAtHome/ebm2onnx/master?filepath=examples%2Fconvert.ipynb
+    :target: https://mybinder.org/v2/gh/interpretml/ebm2onnx/master?filepath=examples%2Fconvert.ipynb
 
 
 Ebm2onnx converts `EBM <https://github.com/interpretml/interpret>`_ models to
@@ -69,6 +69,21 @@ Then you can convert it to ONNX in a single function call:
 
 .. code:: python
 
+    import onnx
+    import ebm2onnx
+
+    onnx_model = ebm2onnx.to_onnx(
+        model,
+        ebm2onnx.get_dtype_from_pandas(x_train),
+    )
+    onnx.save_model(onnx_model, 'ebm_model.onnx')
+
+
+If your dataset is not a pandas dataframe, you can provide the features' types
+directly:
+
+.. code:: python
+
     import ebm2onnx
 
     onnx_model = ebm2onnx.to_onnx(
@@ -85,5 +100,5 @@ Then you can convert it to ONNX in a single function call:
 Try it live
 -------------
 
-- You can live test the `model conversion <https://mybinder.org/v2/gh/SoftAtHome/ebm2onnx/master?filepath=examples%2Fconvert.ipynb>`_.
-- You can live test `local explanations <https://mybinder.org/v2/gh/SoftAtHome/ebm2onnx/master?filepath=examples%2Fexplain_local.ipynb>`_.
+- You can live test the `model conversion <https://mybinder.org/v2/gh/interpretml/ebm2onnx/master?filepath=examples%2Fconvert.ipynb>`_.
+- You can live test `local explanations <https://mybinder.org/v2/gh/interpretml/ebm2onnx/master?filepath=examples%2Fexplain_local.ipynb>`_.
