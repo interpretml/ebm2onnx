@@ -36,6 +36,6 @@ setup(
     name='ebm2onnx',
     packages=find_packages(include=['ebm2onnx']),
     url='https://github.com/interpretml/ebm2onnx.git',
-    version='1.1.1',
+    version='1.2.0',
     zip_safe=True,
 )
