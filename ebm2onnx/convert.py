@@ -11,6 +11,7 @@ from interpret.glassbox import ExplainableBoostingClassifier, ExplainableBoostin
 
 
 onnx_type_for={
+    'bool': onnx.TensorProto.BOOL,
     'float': onnx.TensorProto.FLOAT,
     'double': onnx.TensorProto.DOUBLE,
     'int': onnx.TensorProto.INT64,
@@ -72,7 +73,13 @@ def to_onnx(model, dtype, name="ebm",
             col_mapping = model.preprocessor_.col_mapping_[feature_group[0]]
             additive_terms = model.additive_terms_[feature_index]
 
-            part = graph.create_input(root, feature_name, onnx.TensorProto.STRING, [None])
+            feature_dtype = infer_features_dtype(dtype, feature_name)
+            if feature_dtype != onnx.TensorProto.STRING:
+                raise ValueError(
+                    "categorical features must be encoded as strings only. "
+                    "{} is encoded as {} which is not supported.".format(feature_name, dtype[feature_name])
+                )
+            part = graph.create_input(root, feature_name, feature_dtype, [None])
             part = ops.flatten()(part)
             inputs[feature_index] = part
             part = ebm.get_bin_index_on_categorical_value(col_mapping)(part)

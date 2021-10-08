@@ -22,8 +22,9 @@ def train_titanic_binary_classification(interactions, with_categorical=False):
         #}
     )
     df = df.dropna()
-    feature_types=['continuous', 'continuous', 'continuous']
-    feature_columns = ['Age', 'Fare', 'Pclass']
+    df['Old'] = df['Age'] > 65
+    feature_types=['continuous', 'continuous', 'continuous', 'continuous']
+    feature_columns = ['Age', 'Fare', 'Pclass', 'Old']
     if with_categorical is True:
         feature_columns.append('Embarked')
         feature_types.append('categorical')
@@ -87,12 +88,14 @@ def test_predict_binary_classification_without_interactions():
             'Age': 'double',
             'Fare': 'double',
             'Pclass': 'int',
+            'Old': 'bool',
         }
     )
     pred_onnx = infer_model(model_onnx, {
         'Age': x_test['Age'].values,
         'Fare': x_test['Fare'].values,
         'Pclass': x_test['Pclass'].values,
+        'Old': x_test['Old'].values,
     })
 
     assert np.allclose(pred_ebm, pred_onnx[0])
@@ -110,6 +113,7 @@ def test_predict_proba_binary_classification_without_interactions():
             'Age': 'double',
             'Fare': 'double',
             'Pclass': 'int',
+            'Old': 'bool',
         }
     )
     print(x_test.dtypes)
@@ -117,6 +121,7 @@ def test_predict_proba_binary_classification_without_interactions():
         'Age': x_test['Age'].values,
         'Fare': x_test['Fare'].values,
         'Pclass': x_test['Pclass'].values,
+        'Old': x_test['Old'].values,
     })
 
     assert np.allclose(pred_ebm, pred_onnx[0])
@@ -142,12 +147,14 @@ def test_predict_binary_classification_wo_interactions_w_explain():
             'Age': 'double',
             'Fare': 'double',
             'Pclass': 'int',
+            'Old': 'bool',
         }
     )
     pred_onnx = infer_model(model_onnx, {
         'Age': x_test['Age'].values,
         'Fare': x_test['Fare'].values,
         'Pclass': x_test['Pclass'].values,
+        'Old': x_test['Old'].values,
     })
 
     assert len(pred_onnx) == 2
@@ -164,6 +171,7 @@ def test_predict_binary_classification_with_interactions():
             'Age': 'double',
             'Fare': 'double',
             'Pclass': 'int',
+            'Old': 'bool',
         }
     )
 
@@ -171,6 +179,7 @@ def test_predict_binary_classification_with_interactions():
         'Age': x_test['Age'].values,
         'Fare': x_test['Fare'].values,
         'Pclass': x_test['Pclass'].values,
+        'Old': x_test['Old'].values,
     })
 
     assert np.allclose(pred_ebm, pred_onnx[0])
@@ -188,6 +197,7 @@ def test_predict_proba_binary_classification_with_interactions():
             'Age': 'double',
             'Fare': 'double',
             'Pclass': 'int',
+            'Old': 'bool',
         }
     )
     print(x_test.dtypes)
@@ -195,6 +205,7 @@ def test_predict_proba_binary_classification_with_interactions():
         'Age': x_test['Age'].values,
         'Fare': x_test['Fare'].values,
         'Pclass': x_test['Pclass'].values,
+        'Old': x_test['Old'].values,
     })
 
     assert np.allclose(pred_ebm, pred_onnx[0])
@@ -254,6 +265,7 @@ def test_predict_binary_classification_with_categorical():
             'Age': 'double',
             'Fare': 'double',
             'Pclass': 'int',
+            'Old': 'bool',
             'Embarked': 'str'
         }
     )
@@ -262,6 +274,7 @@ def test_predict_binary_classification_with_categorical():
         'Age': x_test['Age'].values,
         'Fare': x_test['Fare'].values,
         'Pclass': x_test['Pclass'].values,
+        'Old': x_test['Old'].values,
         'Embarked': x_test['Embarked'].values,
     })
 
