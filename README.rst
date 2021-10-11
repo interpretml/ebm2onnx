@@ -102,3 +102,20 @@ Try it live
 
 - You can live test the `model conversion <https://mybinder.org/v2/gh/interpretml/ebm2onnx/master?filepath=examples%2Fconvert.ipynb>`_.
 - You can live test `local explanations <https://mybinder.org/v2/gh/interpretml/ebm2onnx/master?filepath=examples%2Fexplain_local.ipynb>`_.
+
+
+Supporting organizations
+-------------------------
+
+The following organizations are supporting Ebm2onnx:
+
+- `SoftAtHome <https://www.softathome.com>`_: Main supporter of Ebm2onnx development.
+- `InterpretML <https://interpret.ml>`_: Ebm2onnx is hosted under the umbrella of the InterpretML organization.
+
+|img_sah| |img_interpret|
+
+.. |img_sah| image:: https://raw.githubusercontent.com/interpretml/ebm2onnx/master/assets/sah_logo.png
+    :target: https://www.softathome.com
+
+.. |img_interpret| image:: https://raw.githubusercontent.com/interpretml/ebm2onnx/master/assets/interpretml-logo.png
+    :target: https://interpret.ml
