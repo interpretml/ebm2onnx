@@ -9,7 +9,7 @@ from sklearn.preprocessing import LabelEncoder
 
 import onnx
 import ebm2onnx
-from .utils import infer_model
+from .utils import infer_model, create_session
 
 
 def train_titanic_binary_classification(interactions, with_categorical=False):
@@ -330,3 +330,54 @@ def test_predict_proba_multiclass_classification():
 
     assert len(pred_onnx) == 2
     assert np.allclose(pred_ebm, pred_onnx[0])
+
+
+def test_predict_w_scores_outputs_def():
+    model_ebm, _, _ = train_titanic_binary_classification(interactions=0)
+
+    model_onnx = ebm2onnx.to_onnx(
+        model_ebm,
+        explain=True,
+        dtype={
+            'Age': 'double',
+            'Fare': 'double',
+            'Pclass': 'int',
+            'Old': 'bool',
+        }
+    )
+    session = create_session(model_onnx)
+
+    outputs = session.get_outputs()
+    assert len(outputs) == 2
+    assert outputs[0].name == "predict_0"
+    assert outputs[0].shape == [None]
+    assert outputs[0].type == 'tensor(int64)'
+    assert outputs[1].name == "scores_0"
+    assert outputs[1].shape == [None, 4, 1]
+    assert outputs[1].type == 'tensor(float)'
+
+
+def test_predict_proba_w_scores_outputs_def():
+    model_ebm, _, _ = train_titanic_binary_classification(interactions=0)
+
+    model_onnx = ebm2onnx.to_onnx(
+        model_ebm,
+        predict_proba=True,
+        explain=True,
+        dtype={
+            'Age': 'double',
+            'Fare': 'double',
+            'Pclass': 'int',
+            'Old': 'bool',
+        }
+    )
+    session = create_session(model_onnx)
+
+    outputs = session.get_outputs()
+    assert len(outputs) == 2
+    assert outputs[0].name == "predict_proba_0"
+    assert outputs[0].shape == [None, 2]
+    assert outputs[0].type == 'tensor(float)'
+    assert outputs[1].name == "scores_0"
+    assert outputs[1].shape == [None, 4, 1]
+    assert outputs[1].type == 'tensor(float)'

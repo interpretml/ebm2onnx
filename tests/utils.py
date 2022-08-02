@@ -8,6 +8,16 @@ import onnxruntime as rt
 import ebm2onnx.graph as graph
 
 
+def create_session(model):
+    _, filename = tempfile.mkstemp()
+    try:
+        onnx.save_model(model, filename)
+        sess = rt.InferenceSession(filename)
+        return sess
+    finally:
+        os.unlink(filename)
+
+
 def infer_model(model, input):
     _, filename = tempfile.mkstemp()
     try:

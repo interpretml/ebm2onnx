@@ -106,6 +106,7 @@ def compute_class_score(intercept):
         )
 
         g = ops.concat(axis=1)(g)
+        g = ops.identity("scores")(g)
         scores_output_name = g.transients[0].name
         g = ops.reduce_sum(keepdims=0)(graph.merge(g, init_sum_axis))
         g = ops.add()(graph.merge(g, init_intercept))
@@ -152,7 +153,7 @@ def predict_proba(binary):
 
             g = ops.mul()(graph.merge(g, init_zeros))
         g = ops.softmax(axis=1)(g)
-        g = ops.identity("predict")(g)
+        g = ops.identity("predict_proba")(g)
         return g
 
     return _predict_proba
