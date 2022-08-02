@@ -23,11 +23,12 @@ def train_titanic_binary_classification(interactions, with_categorical=False):
     )
     df = df.dropna()
     df['Old'] = df['Age'] > 65
-    feature_types=['continuous', 'continuous', 'continuous', 'continuous']
-    feature_columns = ['Age', 'Fare', 'Pclass', 'Old']
-    if with_categorical is True:
-        feature_columns.append('Embarked')
-        feature_types.append('categorical')
+    if with_categorical is False:
+        feature_types=['continuous', 'continuous', 'continuous', 'continuous']
+        feature_columns = ['Age', 'Fare', 'Pclass', 'Old']
+    else:
+        feature_types=['continuous', 'continuous', 'categorical', 'continuous', 'categorical']
+        feature_columns = ['Age', 'Fare', 'Pclass', 'Old', 'Embarked']
     label_column = "Survived"
 
     y = df[[label_column]]

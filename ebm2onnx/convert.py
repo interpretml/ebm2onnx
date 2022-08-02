@@ -109,12 +109,9 @@ def to_onnx(model, dtype, name="ebm",
             additive_terms = model.additive_terms_[feature_index]
 
             feature_dtype = infer_features_dtype(dtype, feature_name)
-            if feature_dtype != onnx.TensorProto.STRING:
-                raise ValueError(
-                    "categorical features must be encoded as strings only. "
-                    "{} is encoded as {} which is not supported.".format(feature_name, dtype[feature_name])
-                )
             part = graph.create_input(root, feature_name, feature_dtype, [None])
+            if feature_dtype != onnx.TensorProto.STRING:
+                part = ops.cast(onnx.TensorProto.STRING)(part)
             part = ops.flatten()(part)
             inputs[feature_index] = part
             part = ebm.get_bin_index_on_categorical_value(col_mapping)(part)
