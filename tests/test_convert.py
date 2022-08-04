@@ -163,12 +163,18 @@ def test_predict_regression_without_interactions(interactions, explain):
     assert np.allclose(pred_ebm, pred_onnx[0])
 
 
-def test_predict_binary_classification_with_categorical():
-    model_ebm, x_test, y_test = train_titanic_binary_classification(interactions=2, with_categorical=True)
+@pytest.mark.parametrize("explain", [False, True])
+@pytest.mark.parametrize("interactions", [0, 2, [(0, 1, 2)], [(0, 1, 2, 3)]])
+def test_predict_binary_classification_with_categorical(interactions, explain):
+    model_ebm, x_test, y_test = train_titanic_binary_classification(
+        interactions=interactions,
+        with_categorical=True,
+    )
     pred_ebm = model_ebm.predict(x_test)
 
     model_onnx = ebm2onnx.to_onnx(
         model_ebm,
+        explain=explain,
         dtype={
             'Age': 'double',
             'Fare': 'double',
@@ -186,6 +192,8 @@ def test_predict_binary_classification_with_categorical():
         'Embarked': x_test['Embarked'].values,
     })
 
+    if explain is True:
+        assert len(pred_onnx) == 2
     assert np.allclose(pred_ebm, pred_onnx[0])
 
 
