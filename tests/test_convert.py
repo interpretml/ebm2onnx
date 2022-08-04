@@ -340,3 +340,45 @@ def test_predict_binary_classification_missing_values():
 
     # score of NaN Embarked on line 2 must be 0
     assert pred_onnx[1][2][4][0] == 0.0  # index: score,iloc,Embarked, 0
+
+
+def test_predict_binary_classification_unknown_values():
+    model_ebm, x_test, y_test = train_titanic_binary_classification(with_categorical=True)
+
+    # patch data
+    x_test.iloc[0, x_test.columns.get_loc('Pclass')] = 5
+    x_test.iloc[1, x_test.columns.get_loc('Pclass')] = -2
+    x_test.iloc[2, x_test.columns.get_loc('Embarked')] = 'Z'
+
+    pred_ebm = model_ebm.predict(x_test)
+
+    model_onnx = ebm2onnx.to_onnx(
+        model_ebm,
+        explain=True,
+        dtype={
+            'Age': 'double',
+            'Fare': 'double',
+            'Pclass': 'int',
+            'Old': 'bool',
+            'Embarked': 'str'
+        }
+    )
+
+    pred_onnx = infer_model(model_onnx, {
+        'Age': x_test['Age'].values,
+        'Fare': x_test['Fare'].values,
+        'Pclass': x_test['Pclass'].values,
+        'Old': x_test['Old'].values,
+        'Embarked': x_test['Embarked'].values,
+    })
+    
+    assert np.allclose(pred_ebm, pred_onnx[0])
+
+    # score of Pclass on line 0 must be 0
+    assert pred_onnx[1][0][2][0] == 0.0  # index: score,iloc,Pclass, 0
+
+    # score of Pclass on line 1 must be 0
+    assert pred_onnx[1][1][2][0] == 0.0  # index: score,iloc,Pclass, 0
+
+    # score of Embarked on line 2 must be 0
+    assert pred_onnx[1][2][4][0] == 0.0  # index: score,iloc,Embarked, 0
