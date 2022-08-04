@@ -83,18 +83,23 @@ def to_onnx(model, dtype, name="ebm",
     root = graph.create_graph()
 
     class_index=0
-    inputs = [None for _ in model.feature_names]
+    inputs = [None for _ in model.feature_names_in_]
     parts = []
 
+    feature_types = list(model.feature_types_in_)
+    interaction_count = len(model.term_names_) - len(feature_types)
+    for _ in range(interaction_count):
+        feature_types.append('interaction')
+
     # first compute the score of each feature
-    for feature_index in range(len(model.feature_names)):
-        feature_name=model.feature_names[feature_index]
-        feature_type=model.feature_types[feature_index]
-        feature_group=model.feature_groups_[feature_index]
+    for feature_index in range(len(model.term_names_)):
+        feature_name=model.term_names_[feature_index]
+        feature_type=feature_types[feature_index]
+        feature_group=model.term_features_[feature_index]
 
         if feature_type == 'continuous':
-            bins = [np.NINF, np.NINF] + list(model.preprocessor_.col_bin_edges_[feature_group[0]])
-            additive_terms = model.additive_terms_[feature_index]
+            bins = [np.NINF, np.NINF] + list(model.bins_[feature_group[0]][0])
+            additive_terms = model.term_scores_[feature_index]
 
             feature_dtype = infer_features_dtype(dtype, feature_name)
             part = graph.create_input(root, feature_name, feature_dtype, [None])
@@ -104,9 +109,9 @@ def to_onnx(model, dtype, name="ebm",
             part = ebm.get_bin_score_1d(additive_terms)(part)
             parts.append(part)
 
-        elif feature_type == 'categorical':
-            col_mapping = model.preprocessor_.col_mapping_[feature_group[0]]
-            additive_terms = model.additive_terms_[feature_index]
+        elif feature_type in ['nominal', 'ordinal']:
+            col_mapping = model.bins_[feature_group[0]][0]
+            additive_terms = model.term_scores_[feature_index]
 
             feature_dtype = infer_features_dtype(dtype, feature_name)
             part = graph.create_input(root, feature_name, feature_dtype, [None])
@@ -120,30 +125,37 @@ def to_onnx(model, dtype, name="ebm",
 
         elif feature_type == 'interaction':
             i_parts = []
-            for index in range(2):
+            way_count = len(feature_group)
+
+            for index in range(way_count):
                 i_feature_index = feature_group[index]
-                i_feature_type = model.feature_types[i_feature_index]
+                i_feature_type = feature_types[i_feature_index]
 
                 if i_feature_type == 'continuous':
-                    bins = [np.NINF, np.NINF] + list(model.pair_preprocessor_.col_bin_edges_[i_feature_index])
+                    # interactions can be of any size (n way).
+                    # There may be one binning per interaction way or not.
+                    # the rule is to use bins_ index if there is one binning available for the way count.
+                    # otherwise, use the last binning for the feature
+                    bin_index = -1 if way_count > len(model.bins_[i_feature_index]) else way_count - 1
+                    bins = [np.NINF, np.NINF] + list(model.bins_[i_feature_index][bin_index])
                     input = graph.strip_to_transients(inputs[i_feature_index])
                     i_parts.append(ebm.get_bin_index_on_continuous_value(bins)(input))
 
-                elif i_feature_type == 'categorical':
-                    col_mapping = model.preprocessor_.col_mapping_[i_feature_index]
+                elif i_feature_type in ['nominal', 'ordinal']:
+                    col_mapping = model.bins_[i_feature_index][0]
                     input = graph.strip_to_transients(inputs[i_feature_index])
                     i_parts.append(ebm.get_bin_index_on_categorical_value(col_mapping)(input))
 
                 else:
-                    raise NotImplementedError(f"feature type {feature_type} is not supported in interactions")
+                    raise ValueError(f"The type of the feature {feature_name} is unknown: {feature_type}")
 
             part = graph.merge(*i_parts)
-            additive_terms = model.additive_terms_[feature_index]
+            additive_terms = model.term_scores_[feature_index]
             part = ebm.get_bin_score_2d(np.array(additive_terms))(part)
             parts.append(part)
 
         else:
-            raise NotImplementedError(f"feature type {feature_type} is not supported")
+            raise ValueError(f"The type of the feature {feature_name} is unknown: {feature_type}")
 
     # compute scores, predict and proba
     g = graph.merge(*parts)
@@ -172,9 +184,9 @@ def to_onnx(model, dtype, name="ebm",
 
     if explain is True:
         if len(model.classes_) == 2:
-            g = graph.add_output(g, scores_output_name, onnx.TensorProto.FLOAT, [None, len(model.feature_names), 1])
+            g = graph.add_output(g, scores_output_name, onnx.TensorProto.FLOAT, [None, len(model.term_names_), 1])
         else:
-            g = graph.add_output(g, scores_output_name, onnx.TensorProto.FLOAT, [None, len(model.feature_names), len(model.classes_)])
+            g = graph.add_output(g, scores_output_name, onnx.TensorProto.FLOAT, [None, len(model.term_names_), len(model.classes_)])
 
     model = graph.compile(g, target_opset, name=name)
     return model

@@ -27,7 +27,7 @@ def train_titanic_binary_classification(interactions, with_categorical=False):
         feature_types=['continuous', 'continuous', 'continuous', 'continuous']
         feature_columns = ['Age', 'Fare', 'Pclass', 'Old']
     else:
-        feature_types=['continuous', 'continuous', 'categorical', 'continuous', 'categorical']
+        feature_types=['continuous', 'continuous', 'nominal', 'continuous', 'nominal']
         feature_columns = ['Age', 'Fare', 'Pclass', 'Old', 'Embarked']
     label_column = "Survived"
 
@@ -64,7 +64,7 @@ def train_bank_churners_multiclass_classification():
         os.path.join('examples','BankChurners.csv'),
     )
     df = df.dropna()
-    feature_types=['continuous', 'continuous', 'categorical', 'continuous']
+    feature_types=['continuous', 'continuous', 'nominal', 'continuous']
     feature_columns = ['Customer_Age', 'Dependent_count', 'Education_Level', 'Credit_Limit']
     label_column = "Income_Category"
 
@@ -257,8 +257,6 @@ def test_predict_regression_with_interactions():
 def test_predict_binary_classification_with_categorical():
     model_ebm, x_test, y_test = train_titanic_binary_classification(interactions=2, with_categorical=True)
     pred_ebm = model_ebm.predict(x_test)
-    print(model_ebm.feature_names)
-    print(model_ebm.feature_groups_)
 
     model_onnx = ebm2onnx.to_onnx(
         model_ebm,
