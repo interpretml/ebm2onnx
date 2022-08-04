@@ -137,7 +137,7 @@ def test_predict_proba_binary_classification(interactions, explain):
     assert np.allclose(pred_ebm, pred_onnx[0])
 
 
-@pytest.mark.parametrize("explain", [False])
+@pytest.mark.parametrize("explain", [False, True])
 @pytest.mark.parametrize("interactions", [0, 2, [(0, 1, 2)], [(0, 1, 2, 3)]])
 def test_predict_regression_without_interactions(interactions, explain):
     model_ebm, x_test, y_test = train_titanic_regression(interactions=0)

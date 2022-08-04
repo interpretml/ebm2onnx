@@ -175,18 +175,21 @@ def to_onnx(model, dtype, name="ebm",
             else:
                 g = ebm.predict_proba(binary=False)(g)
                 g = graph.add_output(g, g.transients[0].name, onnx.TensorProto.FLOAT, [None, len(model.classes_)])
+
+        if explain is True:
+            if len(model.classes_) == 2:
+                g = graph.add_output(g, scores_output_name, onnx.TensorProto.FLOAT, [None, len(model.term_names_), 1])
+            else:
+                g = graph.add_output(g, scores_output_name, onnx.TensorProto.FLOAT, [None, len(model.term_names_), len(model.classes_)])
     elif type(model) is ExplainableBoostingRegressor:
         g, scores_output_name = ebm.compute_class_score(np.array([model.intercept_]))(g)
         g = ebm.predict_value()(g)
         g = graph.add_output(g, g.transients[0].name, onnx.TensorProto.FLOAT, [None])
+        g = graph.add_output(g, scores_output_name, onnx.TensorProto.FLOAT, [None, len(model.term_names_), 1])
     else:
         raise NotImplementedError("{} models are not supported".format(type(model)))
 
-    if explain is True:
-        if len(model.classes_) == 2:
-            g = graph.add_output(g, scores_output_name, onnx.TensorProto.FLOAT, [None, len(model.term_names_), 1])
-        else:
-            g = graph.add_output(g, scores_output_name, onnx.TensorProto.FLOAT, [None, len(model.term_names_), len(model.classes_)])
+
 
     model = graph.compile(g, target_opset, name=name)
     return model
