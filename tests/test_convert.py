@@ -12,7 +12,7 @@ import ebm2onnx
 from .utils import infer_model, create_session
 
 
-def train_titanic_binary_classification(interactions, with_categorical=False):
+def train_titanic_binary_classification(interactions=0, with_categorical=False):
     df = pd.read_csv(
         os.path.join('examples','titanic_train.csv'),
         #dtype= {
@@ -297,3 +297,46 @@ def test_predict_proba_w_scores_outputs_def():
     assert outputs[1].name == "scores_0"
     assert outputs[1].shape == [None, 4, 1]
     assert outputs[1].type == 'tensor(float)'
+
+
+
+def test_predict_binary_classification_missing_values():
+    model_ebm, x_test, y_test = train_titanic_binary_classification(with_categorical=True)
+
+    # patch data
+    x_test.iloc[0, x_test.columns.get_loc('Age')] = np.nan
+    x_test.iloc[1, x_test.columns.get_loc('Fare')] = np.nan
+    x_test.iloc[2, x_test.columns.get_loc('Embarked')] = np.nan
+
+    pred_ebm = model_ebm.predict(x_test)
+
+    model_onnx = ebm2onnx.to_onnx(
+        model_ebm,
+        explain=True,
+        dtype={
+            'Age': 'double',
+            'Fare': 'double',
+            'Pclass': 'int',
+            'Old': 'bool',
+            'Embarked': 'str'
+        }
+    )
+
+    pred_onnx = infer_model(model_onnx, {
+        'Age': x_test['Age'].values,
+        'Fare': x_test['Fare'].values,
+        'Pclass': x_test['Pclass'].values,
+        'Old': x_test['Old'].values,
+        'Embarked': x_test['Embarked'].values,
+    })
+    
+    assert np.allclose(pred_ebm, pred_onnx[0])
+
+    # score of NaN Age on line 0 must be 0
+    assert pred_onnx[1][0][0][0] == 0.0  # index: score,iloc,Age, 0
+
+    # score of NaN Fare on line 1 must be 0
+    assert pred_onnx[1][1][1][0] == 0.0  # index: score,iloc,Fare, 0
+
+    # score of NaN Embarked on line 2 must be 0
+    assert pred_onnx[1][2][4][0] == 0.0  # index: score,iloc,Embarked, 0
