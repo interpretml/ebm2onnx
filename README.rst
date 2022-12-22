@@ -59,7 +59,7 @@ Train an EBM model:
 
     # train an EBM model
     model = ExplainableBoostingClassifier(
-        feature_types=['continuous', 'continuous', 'continuous','categorical'],
+        feature_types=['continuous', 'continuous', 'continuous', 'nominal'],
     )
     model.fit(x_train, y_train)
 
