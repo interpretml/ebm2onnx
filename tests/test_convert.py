@@ -12,7 +12,7 @@ import ebm2onnx
 from .utils import infer_model, create_session
 
 
-def train_titanic_binary_classification(interactions, with_categorical=False):
+def train_titanic_binary_classification(interactions=0, with_categorical=False):
     df = pd.read_csv(
         os.path.join('examples','titanic_train.csv'),
         #dtype= {
@@ -27,7 +27,7 @@ def train_titanic_binary_classification(interactions, with_categorical=False):
         feature_types=['continuous', 'continuous', 'continuous', 'continuous']
         feature_columns = ['Age', 'Fare', 'Pclass', 'Old']
     else:
-        feature_types=['continuous', 'continuous', 'categorical', 'continuous', 'categorical']
+        feature_types=['continuous', 'continuous', 'nominal', 'continuous', 'nominal']
         feature_columns = ['Age', 'Fare', 'Pclass', 'Old', 'Embarked']
     label_column = "Survived"
 
@@ -64,7 +64,7 @@ def train_bank_churners_multiclass_classification():
         os.path.join('examples','BankChurners.csv'),
     )
     df = df.dropna()
-    feature_types=['continuous', 'continuous', 'categorical', 'continuous']
+    feature_types=['continuous', 'continuous', 'nominal', 'continuous']
     feature_columns = ['Customer_Age', 'Dependent_count', 'Education_Level', 'Credit_Limit']
     label_column = "Income_Category"
 
@@ -79,95 +79,15 @@ def train_bank_churners_multiclass_classification():
     return model, x_test, y_test
 
 
-def test_predict_binary_classification_without_interactions():
-    model_ebm, x_test, y_test = train_titanic_binary_classification(interactions=0)
-    pred_ebm = model_ebm.predict(x_test)    
-
-    model_onnx = ebm2onnx.to_onnx(
-        model_ebm,
-        dtype={
-            'Age': 'double',
-            'Fare': 'double',
-            'Pclass': 'int',
-            'Old': 'bool',
-        }
-    )
-    pred_onnx = infer_model(model_onnx, {
-        'Age': x_test['Age'].values,
-        'Fare': x_test['Fare'].values,
-        'Pclass': x_test['Pclass'].values,
-        'Old': x_test['Old'].values,
-    })
-
-    assert np.allclose(pred_ebm, pred_onnx[0])
-
-
-def test_predict_proba_binary_classification_without_interactions():
-    model_ebm, x_test, y_test = train_titanic_binary_classification(interactions=0)
-    pred_ebm = model_ebm.predict_proba(x_test)
-    #pred_ebm_local = model_ebm.explain_local(x_test, y_test)
-
-    model_onnx = ebm2onnx.to_onnx(
-        model_ebm,
-        predict_proba=True,
-        dtype={
-            'Age': 'double',
-            'Fare': 'double',
-            'Pclass': 'int',
-            'Old': 'bool',
-        }
-    )
-    print(x_test.dtypes)
-    pred_onnx = infer_model(model_onnx, {
-        'Age': x_test['Age'].values,
-        'Fare': x_test['Fare'].values,
-        'Pclass': x_test['Pclass'].values,
-        'Old': x_test['Old'].values,
-    })
-
-    assert np.allclose(pred_ebm, pred_onnx[0])
-
-    '''
-    for row in range(pred_ebm.shape[0]):
-        print(pred_ebm_local.data(row))
-        print(pred_onnx[1][row, :])
-        print(model_ebm.preprocessor_.col_bin_edges_[0])
-        print(model_ebm.additive_terms_[0])
-        assert pred_ebm[row, 0] == pytest.approx(pred_onnx[0][row, 0])
-    '''
-
-
-def test_predict_binary_classification_wo_interactions_w_explain():
-    model_ebm, x_test, y_test = train_titanic_binary_classification(interactions=0)
+@pytest.mark.parametrize("explain", [False, True])
+@pytest.mark.parametrize("interactions", [0, 2, [(0, 1, 2)], [(0, 1, 2, 3)]])
+def test_predict_binary_classification(interactions, explain):
+    model_ebm, x_test, y_test = train_titanic_binary_classification(interactions=interactions)
     pred_ebm = model_ebm.predict(x_test)
 
     model_onnx = ebm2onnx.to_onnx(
         model_ebm,
-        explain=True,
-        dtype={
-            'Age': 'double',
-            'Fare': 'double',
-            'Pclass': 'int',
-            'Old': 'bool',
-        }
-    )
-    pred_onnx = infer_model(model_onnx, {
-        'Age': x_test['Age'].values,
-        'Fare': x_test['Fare'].values,
-        'Pclass': x_test['Pclass'].values,
-        'Old': x_test['Old'].values,
-    })
-
-    assert len(pred_onnx) == 2
-    assert np.allclose(pred_ebm, pred_onnx[0])
-
-
-def test_predict_binary_classification_with_interactions():
-    model_ebm, x_test, y_test = train_titanic_binary_classification(interactions=2)
-    pred_ebm = model_ebm.predict(x_test)
-
-    model_onnx = ebm2onnx.to_onnx(
-        model_ebm,
+        explain=explain,
         dtype={
             'Age': 'double',
             'Fare': 'double',
@@ -183,17 +103,21 @@ def test_predict_binary_classification_with_interactions():
         'Old': x_test['Old'].values,
     })
 
+    if explain is True:
+        assert len(pred_onnx) == 2
     assert np.allclose(pred_ebm, pred_onnx[0])
 
 
-def test_predict_proba_binary_classification_with_interactions():
-    model_ebm, x_test, y_test = train_titanic_binary_classification(interactions=2)
+@pytest.mark.parametrize("explain", [False, True])
+@pytest.mark.parametrize("interactions", [0, 2, [(0, 1, 2)], [(0, 1, 2, 3)]])
+def test_predict_proba_binary_classification(interactions, explain):
+    model_ebm, x_test, y_test = train_titanic_binary_classification(interactions=interactions)
     pred_ebm = model_ebm.predict_proba(x_test)
 
     model_onnx = ebm2onnx.to_onnx(
         model_ebm,
         predict_proba=True,
-        # explain=True,
+        explain=explain,
         dtype={
             'Age': 'double',
             'Fare': 'double',
@@ -201,7 +125,6 @@ def test_predict_proba_binary_classification_with_interactions():
             'Old': 'bool',
         }
     )
-    print(x_test.dtypes)
     pred_onnx = infer_model(model_onnx, {
         'Age': x_test['Age'].values,
         'Fare': x_test['Fare'].values,
@@ -209,15 +132,20 @@ def test_predict_proba_binary_classification_with_interactions():
         'Old': x_test['Old'].values,
     })
 
+    if explain is True:
+        assert len(pred_onnx) == 2
     assert np.allclose(pred_ebm, pred_onnx[0])
 
 
-def test_predict_regression_without_interactions():
+@pytest.mark.parametrize("explain", [False, True])
+@pytest.mark.parametrize("interactions", [0, 2, [(0, 1, 2)], [(0, 1, 2, 3)]])
+def test_predict_regression_without_interactions(interactions, explain):
     model_ebm, x_test, y_test = train_titanic_regression(interactions=0)
     pred_ebm = model_ebm.predict(x_test)
 
     model_onnx = ebm2onnx.to_onnx(
         model_ebm,
+        explain=explain,
         dtype={
             'SibSp': 'int',
             'Fare': 'double',
@@ -230,38 +158,23 @@ def test_predict_regression_without_interactions():
         'Pclass': x_test['Pclass'].values,
     })
 
+    if explain is True:
+        assert len(pred_onnx) == 2
     assert np.allclose(pred_ebm, pred_onnx[0])
 
 
-def test_predict_regression_with_interactions():
-    model_ebm, x_test, y_test = train_titanic_regression(interactions=2)
-    pred_ebm = model_ebm.predict(x_test)
-
-    model_onnx = ebm2onnx.to_onnx(
-        model_ebm,
-        dtype={
-            'SibSp': 'int',
-            'Fare': 'double',
-            'Pclass': 'int',
-        },
+@pytest.mark.parametrize("explain", [False, True])
+@pytest.mark.parametrize("interactions", [0, 2, [(0, 1, 2)], [(0, 1, 2, 3)]])
+def test_predict_binary_classification_with_categorical(interactions, explain):
+    model_ebm, x_test, y_test = train_titanic_binary_classification(
+        interactions=interactions,
+        with_categorical=True,
     )
-    pred_onnx = infer_model(model_onnx, {
-        'SibSp': x_test['SibSp'].values,
-        'Fare': x_test['Fare'].values,
-        'Pclass': x_test['Pclass'].values,
-    })
-
-    assert np.allclose(pred_ebm, pred_onnx[0])
-
-
-def test_predict_binary_classification_with_categorical():
-    model_ebm, x_test, y_test = train_titanic_binary_classification(interactions=2, with_categorical=True)
     pred_ebm = model_ebm.predict(x_test)
-    print(model_ebm.feature_names)
-    print(model_ebm.feature_groups_)
 
     model_onnx = ebm2onnx.to_onnx(
         model_ebm,
+        explain=explain,
         dtype={
             'Age': 'double',
             'Fare': 'double',
@@ -279,6 +192,8 @@ def test_predict_binary_classification_with_categorical():
         'Embarked': x_test['Embarked'].values,
     })
 
+    if explain is True:
+        assert len(pred_onnx) == 2
     assert np.allclose(pred_ebm, pred_onnx[0])
 
 
@@ -382,3 +297,88 @@ def test_predict_proba_w_scores_outputs_def():
     assert outputs[1].name == "scores_0"
     assert outputs[1].shape == [None, 4, 1]
     assert outputs[1].type == 'tensor(float)'
+
+
+
+def test_predict_binary_classification_missing_values():
+    model_ebm, x_test, y_test = train_titanic_binary_classification(with_categorical=True)
+
+    # patch data
+    x_test.iloc[0, x_test.columns.get_loc('Age')] = np.nan
+    x_test.iloc[1, x_test.columns.get_loc('Fare')] = np.nan
+    x_test.iloc[2, x_test.columns.get_loc('Embarked')] = np.nan
+
+    pred_ebm = model_ebm.predict(x_test)
+
+    model_onnx = ebm2onnx.to_onnx(
+        model_ebm,
+        explain=True,
+        dtype={
+            'Age': 'double',
+            'Fare': 'double',
+            'Pclass': 'int',
+            'Old': 'bool',
+            'Embarked': 'str'
+        }
+    )
+
+    pred_onnx = infer_model(model_onnx, {
+        'Age': x_test['Age'].values,
+        'Fare': x_test['Fare'].values,
+        'Pclass': x_test['Pclass'].values,
+        'Old': x_test['Old'].values,
+        'Embarked': x_test['Embarked'].values,
+    })
+    
+    assert np.allclose(pred_ebm, pred_onnx[0])
+
+    # score of NaN Age on line 0 must be 0
+    assert pred_onnx[1][0][0][0] == 0.0  # index: score,iloc,Age, 0
+
+    # score of NaN Fare on line 1 must be 0
+    assert pred_onnx[1][1][1][0] == 0.0  # index: score,iloc,Fare, 0
+
+    # score of NaN Embarked on line 2 must be 0
+    assert pred_onnx[1][2][4][0] == 0.0  # index: score,iloc,Embarked, 0
+
+
+def test_predict_binary_classification_unknown_values():
+    model_ebm, x_test, y_test = train_titanic_binary_classification(with_categorical=True)
+
+    # patch data
+    x_test.iloc[0, x_test.columns.get_loc('Pclass')] = 5
+    x_test.iloc[1, x_test.columns.get_loc('Pclass')] = -2
+    x_test.iloc[2, x_test.columns.get_loc('Embarked')] = 'Z'
+
+    pred_ebm = model_ebm.predict(x_test)
+
+    model_onnx = ebm2onnx.to_onnx(
+        model_ebm,
+        explain=True,
+        dtype={
+            'Age': 'double',
+            'Fare': 'double',
+            'Pclass': 'int',
+            'Old': 'bool',
+            'Embarked': 'str'
+        }
+    )
+
+    pred_onnx = infer_model(model_onnx, {
+        'Age': x_test['Age'].values,
+        'Fare': x_test['Fare'].values,
+        'Pclass': x_test['Pclass'].values,
+        'Old': x_test['Old'].values,
+        'Embarked': x_test['Embarked'].values,
+    })
+    
+    assert np.allclose(pred_ebm, pred_onnx[0])
+
+    # score of Pclass on line 0 must be 0
+    assert pred_onnx[1][0][2][0] == 0.0  # index: score,iloc,Pclass, 0
+
+    # score of Pclass on line 1 must be 0
+    assert pred_onnx[1][1][2][0] == 0.0  # index: score,iloc,Pclass, 0
+
+    # score of Embarked on line 2 must be 0
+    assert pred_onnx[1][2][4][0] == 0.0  # index: score,iloc,Embarked, 0

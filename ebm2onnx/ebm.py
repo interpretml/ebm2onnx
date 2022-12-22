@@ -70,7 +70,7 @@ def get_bin_score_2d(bin_scores):
     def _get_bin_score_2d(g):
         init_bin_scores = graph.create_initializer(
             g, "bin_scores", onnx.TensorProto.FLOAT,
-            [bin_scores.shape[0], bin_scores.shape[1]],
+            bin_scores.shape,
             bin_scores.flatten(),
         )
 
