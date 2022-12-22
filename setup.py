@@ -9,7 +9,7 @@ with open('README.rst') as readme_file:
 
 requirements = [
     'onnx>=1.8',
-    'interpret-core[required,ebm]>=0.2',
+    'interpret-core[required,ebm]>=0.3',
  ]
 
 setup(
