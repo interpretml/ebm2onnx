@@ -91,6 +91,7 @@ directly:
             'Age': 'double',
             'Fare': 'double',
             'Pclass': 'int',
+            'Embarked': 'str',
         }
     )
     onnx.save_model(onnx_model, 'ebm_model.onnx')
