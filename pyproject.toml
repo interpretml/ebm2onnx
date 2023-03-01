@@ -1,0 +1,44 @@
+[project]
+name = "ebm2onnx"
+version = "2.0.0"
+description = "EBM model serialization to ONNX"
+readme = "README.rst"
+requires-python = ">=3.6"
+license = {file = "LICENSE.txt"}
+keywords = ["ebm2onnx", "interpretml", "machine-learning", "onnx"]
+authors = [
+  {email = "romain.picard@softathome.com"},
+  {name = "Romain Picard"}
+]
+classifiers = [
+  'Development Status :: 4 - Beta',
+  'Intended Audience :: Developers',
+  'License :: OSI Approved :: MIT License',
+  'Topic :: Scientific/Engineering :: Artificial Intelligence',
+  'Natural Language :: English',
+  'Programming Language :: Python :: 3',
+  'Programming Language :: Python :: 3.6',
+  'Programming Language :: Python :: 3.7',
+  'Programming Language :: Python :: 3.8',
+]
+
+dependencies = [
+  'onnx~=1.8',
+  'interpret-core[required,ebm]~=0.3',
+]
+
+[project.optional-dependencies]
+test = [
+  "pytest",
+]
+
+[project.urls]
+repository = "https://github.com/interpretml/ebm2onnx.git"
+
+[options]
+packages = ["ebm2onnx"]
+
+[tool.setuptools.packages.find]
+where = ["./"]
+include = ["ebm2onnx"]
+namespaces = false
