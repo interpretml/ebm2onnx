@@ -87,7 +87,7 @@ def get_bin_score_2d(bin_scores):
     return _get_bin_score_2d
 
 
-def compute_class_score(intercept):
+def compute_class_score(intercept, explain_name):
     """
     intercept shape: [class_count]
     input shapes: [batch_size x 1 x class_count]
@@ -106,7 +106,7 @@ def compute_class_score(intercept):
         )
 
         g = ops.concat(axis=1)(g)
-        g = ops.identity("scores")(g)
+        g = ops.identity(explain_name, suffix=False)(g)
         scores_output_name = g.transients[0].name
         g = ops.reduce_sum(keepdims=0)(graph.merge(g, init_sum_axis))
         g = ops.add()(graph.merge(g, init_intercept))
@@ -115,7 +115,7 @@ def compute_class_score(intercept):
     return _compute_class_score
 
 
-def predict_class(binary):
+def predict_class(binary, prediction_name):
     def _predict_class(g):
         if binary is True:
             init_zeros = graph.create_initializer(
@@ -132,13 +132,13 @@ def predict_class(binary):
 
         g = ops.argmax(axis=1)(g)
         g = ops.reshape()(graph.merge(g, init_reshape))
-        g = ops.identity("predict")(g)
+        g = ops.identity(prediction_name, suffix=False)(g)
         return g
 
     return _predict_class
 
 
-def predict_proba(binary):
+def predict_proba(binary, probabilities_name):
     def _predict_proba(g):
         if binary is True:
             init_zeros = graph.create_initializer(
@@ -153,13 +153,13 @@ def predict_proba(binary):
 
             g = ops.mul()(graph.merge(g, init_zeros))
         g = ops.softmax(axis=1)(g)
-        g = ops.identity("predict_proba")(g)
+        g = ops.identity(probabilities_name, suffix=False)(g)
         return g
 
     return _predict_proba
 
 
-def predict_value():
+def predict_value(prediction_name):
     """Final prediction step for regression
 
     No operations are needed here, we just reshape the
@@ -172,7 +172,7 @@ def predict_value():
         )
 
         g = ops.reshape()(graph.merge(g, init_reshape))
-        g = ops.identity("predict")(g)
+        g = ops.identity(prediction_name, suffix=False)(g)
         return g
 
     return _predict_value

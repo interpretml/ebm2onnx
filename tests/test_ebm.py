@@ -156,7 +156,7 @@ def test_compute_class_score():
     i3 = graph.create_input(g, "i3", onnx.TensorProto.FLOAT, [None, 1, 1])
 
     i = graph.merge(i1, i2, i3)
-    g, _ = ebm.compute_class_score(np.array([0.2]))(i)
+    g, _ = ebm.compute_class_score(np.array([0.2]), explain_name="scores")(i)
     g = graph.add_output(g, g.transients[0].name, onnx.TensorProto.FLOAT, [None, 1])
     
     assert_model_result(g, 
@@ -181,7 +181,7 @@ def test_compute_multiclass_score():
     i3 = graph.create_input(g, "i3", onnx.TensorProto.FLOAT, [None, 1, 3])
 
     i = graph.merge(i1, i2, i3)
-    g, _ = ebm.compute_class_score(np.array([0.1, 0.2, 0.3]))(i)
+    g, _ = ebm.compute_class_score(np.array([0.1, 0.2, 0.3]), explain_name="scores")(i)
     g = graph.add_output(g, g.transients[0].name, onnx.TensorProto.FLOAT, [None, 3])
 
     assert_model_result(g,
@@ -215,7 +215,7 @@ def test_predict_class_binary():
     g = graph.create_graph()
     i = graph.create_input(g, "i", onnx.TensorProto.FLOAT, [None, 1])
 
-    g = ebm.predict_class(binary=True)(i)
+    g = ebm.predict_class(binary=True, prediction_name="prediction")(i)
     g = graph.add_output(g, g.transients[0].name, onnx.TensorProto.INT64, [None])
     
     assert_model_result(g, 
@@ -230,7 +230,7 @@ def test_predict_multiclass_binary():
     g = graph.create_graph()
     i = graph.create_input(g, "i", onnx.TensorProto.FLOAT, [None, 3])
 
-    g = ebm.predict_class(binary=False)(i)
+    g = ebm.predict_class(binary=False, prediction_name="prediction")(i)
     g = graph.add_output(g, g.transients[0].name, onnx.TensorProto.INT64, [None])
 
     assert_model_result(g,
@@ -250,7 +250,7 @@ def test_predict_proba_binary():
     g = graph.create_graph()
     i = graph.create_input(g, "i", onnx.TensorProto.FLOAT, [None, 1])
 
-    g = ebm.predict_proba(binary=True)(i)
+    g = ebm.predict_proba(binary=True, probabilities_name="probabilities")(i)
     g = graph.add_output(g, g.transients[0].name, onnx.TensorProto.FLOAT, [None, 2])
     
     assert_model_result(g, 

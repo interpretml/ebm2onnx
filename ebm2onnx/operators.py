@@ -155,9 +155,9 @@ def gather_nd():
     return _gather_nd
 
 
-def identity(name):
-    def _identity(g):
-        identity_name = g.generate_name(name)
+def identity(name, suffix=True):
+    def _identity(g):        
+        identity_name = g.generate_name(name) if suffix else name
         nodes = [
             onnx.helper.make_node("Identity", [g.transients[0].name], [identity_name]),
         ]

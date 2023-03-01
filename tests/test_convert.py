@@ -265,10 +265,10 @@ def test_predict_w_scores_outputs_def():
 
     outputs = session.get_outputs()
     assert len(outputs) == 2
-    assert outputs[0].name == "predict_0"
+    assert outputs[0].name == "prediction"
     assert outputs[0].shape == [None]
     assert outputs[0].type == 'tensor(int64)'
-    assert outputs[1].name == "scores_0"
+    assert outputs[1].name == "scores"
     assert outputs[1].shape == [None, 4, 1]
     assert outputs[1].type == 'tensor(float)'
 
@@ -291,13 +291,13 @@ def test_predict_proba_w_scores_outputs_def():
 
     outputs = session.get_outputs()
     assert len(outputs) == 3
-    assert outputs[0].name == "predict_0"
+    assert outputs[0].name == "prediction"
     assert outputs[0].shape == [None]
     assert outputs[0].type == 'tensor(int64)'
-    assert outputs[1].name == "predict_proba_0"
+    assert outputs[1].name == "probabilities"
     assert outputs[1].shape == [None, 2]
     assert outputs[1].type == 'tensor(float)'
-    assert outputs[2].name == "scores_0"
+    assert outputs[2].name == "scores"
     assert outputs[2].shape == [None, 4, 1]
     assert outputs[2].type == 'tensor(float)'
 

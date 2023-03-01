@@ -65,13 +65,16 @@ def to_onnx(model, dtype, name="ebm",
             predict_proba=False,
             explain=False,
             target_opset=None,
+            prediction_name="prediction",
+            probabilities_name="probabilities",
+            explain_name="scores",
             ):
     """Converts an EBM model to ONNX.
 
     The returned model contains one to three output.
-    The first output is always the prediction, and is named "predict_0".
-    If predict_proba is set to True, then another output named "predict_proba_0" is added.
-    If explain is set to True, then another output named "scores_0" is added.
+    The first output is always the prediction, and is named "prediction".
+    If predict_proba is set to True, then another output named "probabilities" is added.
+    If explain is set to True, then another output named "scores" is added.
 
     Args:
         model: The EBM model, trained with interpretml
@@ -165,20 +168,20 @@ def to_onnx(model, dtype, name="ebm",
     # compute scores, predict and proba
     g = graph.merge(*parts)
     if type(model) is ExplainableBoostingClassifier:
-        g, scores_output_name = ebm.compute_class_score(model.intercept_)(g)
+        g, scores_output_name = ebm.compute_class_score(model.intercept_, explain_name)(g)
         g_scores = graph.strip_to_transients(g)
         if len(model.classes_) == 2: # binary classification            
-            g = ebm.predict_class(binary=True)(g)
+            g = ebm.predict_class(binary=True, prediction_name=prediction_name)(g)
             g = graph.add_output(g, g.transients[0].name, onnx.TensorProto.INT64, [None])
             if predict_proba is True:
-                gp = ebm.predict_proba(binary=True)(g_scores)
+                gp = ebm.predict_proba(binary=True, probabilities_name=probabilities_name)(g_scores)
                 g = graph.merge(graph.clear_transients(g), gp)
                 g = graph.add_output(g, g.transients[0].name, onnx.TensorProto.FLOAT, [None, len(model.classes_)])
         else:
-            g = ebm.predict_class(binary=False)(g)
+            g = ebm.predict_class(binary=False, prediction_name=prediction_name)(g)
             g = graph.add_output(g, g.transients[0].name, onnx.TensorProto.INT64, [None])
             if predict_proba is True:
-                gp = ebm.predict_proba(binary=False)(g_scores)
+                gp = ebm.predict_proba(binary=False, probabilities_name=probabilities_name)(g_scores)
                 g = graph.merge(graph.clear_transients(g), gp)
                 g = graph.add_output(g, g.transients[0].name, onnx.TensorProto.FLOAT, [None, len(model.classes_)])
 
@@ -188,8 +191,8 @@ def to_onnx(model, dtype, name="ebm",
             else:
                 g = graph.add_output(g, scores_output_name, onnx.TensorProto.FLOAT, [None, len(model.term_names_), len(model.classes_)])
     elif type(model) is ExplainableBoostingRegressor:
-        g, scores_output_name = ebm.compute_class_score(np.array([model.intercept_]))(g)
-        g = ebm.predict_value()(g)
+        g, scores_output_name = ebm.compute_class_score(np.array([model.intercept_]), explain_name)(g)
+        g = ebm.predict_value(prediction_name)(g)
         g = graph.add_output(g, g.transients[0].name, onnx.TensorProto.FLOAT, [None])
         g = graph.add_output(g, scores_output_name, onnx.TensorProto.FLOAT, [None, len(model.term_names_), 1])
     else:
