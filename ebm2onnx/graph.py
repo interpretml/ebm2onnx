@@ -86,9 +86,23 @@ def create_initializer(graph, name, type, shape, value):
 
 
 def strip_to_transients(graph):
+    """ Returns only the transients of a graph
+    """
     return Graph(
         generate_name=graph.generate_name,
         transients=graph.transients,
+    )
+
+
+def clear_transients(graph):
+    """ Removes all transients from a graph
+    """
+    return graph._replace(
+        inputs=graph.inputs,
+        outputs=graph.outputs,
+        initializers=graph.initializers,
+        transients=[],
+        nodes=graph.nodes,
     )
 
 

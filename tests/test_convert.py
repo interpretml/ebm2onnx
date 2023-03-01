@@ -133,8 +133,8 @@ def test_predict_proba_binary_classification(interactions, explain):
     })
 
     if explain is True:
-        assert len(pred_onnx) == 2
-    assert np.allclose(pred_ebm, pred_onnx[0])
+        assert len(pred_onnx) == 3        
+    assert np.allclose(pred_ebm, pred_onnx[1])
 
 
 @pytest.mark.parametrize("explain", [False, True])
@@ -244,8 +244,8 @@ def test_predict_proba_multiclass_classification():
         'Credit_Limit': x_test['Credit_Limit'].values,
     })
 
-    assert len(pred_onnx) == 2
-    assert np.allclose(pred_ebm, pred_onnx[0])
+    assert len(pred_onnx) == 3
+    assert np.allclose(pred_ebm, pred_onnx[1])
 
 
 def test_predict_w_scores_outputs_def():
@@ -290,13 +290,16 @@ def test_predict_proba_w_scores_outputs_def():
     session = create_session(model_onnx)
 
     outputs = session.get_outputs()
-    assert len(outputs) == 2
-    assert outputs[0].name == "predict_proba_0"
-    assert outputs[0].shape == [None, 2]
-    assert outputs[0].type == 'tensor(float)'
-    assert outputs[1].name == "scores_0"
-    assert outputs[1].shape == [None, 4, 1]
+    assert len(outputs) == 3
+    assert outputs[0].name == "predict_0"
+    assert outputs[0].shape == [None]
+    assert outputs[0].type == 'tensor(int64)'
+    assert outputs[1].name == "predict_proba_0"
+    assert outputs[1].shape == [None, 2]
     assert outputs[1].type == 'tensor(float)'
+    assert outputs[2].name == "scores_0"
+    assert outputs[2].shape == [None, 4, 1]
+    assert outputs[2].type == 'tensor(float)'
 
 
 
