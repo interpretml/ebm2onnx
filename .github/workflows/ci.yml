@@ -16,11 +16,11 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install -r requirements_test.txt
-          pip install pytest
+          pip install pytest build
       - name: Check twine
         run: |
           pip install twine
-          python setup.py sdist
+          python3 -m build
           twine check dist/*
 
   coverage:
