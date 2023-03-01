@@ -34,6 +34,7 @@ Features
 * Continuous, nominal, and ordinal variables
 * N-way interactions
 * Multi-class classification (support is still experimental in EBM)
+* Expose predictions probabilities
 * Expose local explanations
 
 The export of the models is tested against `ONNX Runtime <https://github.com/Microsoft/onnxruntime>`_. 
