@@ -1,15 +1,22 @@
-from collections import namedtuple
+from typing import NamedTuple, Callable, List
 
 import onnx
 
 
-Graph = namedtuple('Graph', ['generate_name','inputs', 'outputs', 'transients', 'nodes', 'initializers'])
-Graph.__new__.__defaults__ = ([], [], [], [], [])
+class Graph(NamedTuple):
+    generate_name: Callable[[], str]
+    inputs: List[onnx.ValueInfoProto] = []
+    outputs: List[onnx.ValueInfoProto] = []
+    transients: List[onnx.ValueInfoProto] = []
+    nodes: List[onnx.NodeProto] = []
+    initializers: List[onnx.TensorProto] = []
 
 
-def create_name_generator():
+def create_name_generator() -> Callable[[], str]:
     state = {}
-    def _generate_unique_name(name):
+    def _generate_unique_name(name: str) -> str:
+        """ Generates a new globaly unique name in the graph
+        """
         if name in state:
             i = state[name]
             state[name] += 1
