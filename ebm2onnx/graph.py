@@ -12,7 +12,7 @@ class Graph(NamedTuple):
     initializers: List[onnx.TensorProto] = []
 
 
-def create_name_generator() -> Callable[[], str]:
+def create_name_generator() -> Callable[[str], str]:
     state = {}
     def _generate_unique_name(name: str) -> str:
         """ Generates a new globaly unique name in the graph
