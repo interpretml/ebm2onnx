@@ -59,7 +59,7 @@ def train_titanic_regression(interactions):
     return model, x_test, y_test
 
 
-def train_bank_churners_multiclass_classification():
+def train_bank_churners_multiclass_classification(encode_label=True):
     df = pd.read_csv(
         os.path.join('examples','BankChurners.csv'),
     )
@@ -69,8 +69,11 @@ def train_bank_churners_multiclass_classification():
     label_column = "Income_Category"
 
     y = df[[label_column]]
-    le = LabelEncoder()
-    y_enc = le.fit_transform(y)
+    if encode_label:
+        le = LabelEncoder()
+        y_enc = le.fit_transform(y)
+    else:
+        y_enc = y
     x = df[feature_columns]
     x_train, x_test, y_train, y_test = train_test_split(x, y_enc)
     model = ExplainableBoostingClassifier(interactions=0, feature_types=feature_types)
@@ -197,8 +200,9 @@ def test_predict_binary_classification_with_categorical(interactions, explain):
     assert np.allclose(pred_ebm, pred_onnx[0])
 
 
-def test_predict_multiclass_classification():
-    model_ebm, x_test, y_test = train_bank_churners_multiclass_classification()
+@pytest.mark.parametrize("encode_label", [False, True])
+def test_predict_multiclass_classification(encode_label):
+    model_ebm, x_test, y_test = train_bank_churners_multiclass_classification(encode_label=encode_label)
     pred_ebm = model_ebm.predict(x_test)
 
     model_onnx = ebm2onnx.to_onnx(
@@ -218,7 +222,7 @@ def test_predict_multiclass_classification():
         'Credit_Limit': x_test['Credit_Limit'].values,
     })
 
-    assert np.allclose(pred_ebm, pred_onnx[0])
+    assert (pred_ebm == pred_onnx[0]).all()
 
 
 def test_predict_proba_multiclass_classification():

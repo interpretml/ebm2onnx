@@ -115,7 +115,8 @@ def compute_class_score(intercept, explain_name):
     return _compute_class_score
 
 
-def predict_class(binary, prediction_name):
+def predict_class(classes, class_type, binary, prediction_name):
+    _classes = classes
     def _predict_class(g):
         if binary is True:
             init_zeros = graph.create_initializer(
@@ -130,7 +131,13 @@ def predict_class(binary, prediction_name):
             [1], [0],
         )
 
-        g = ops.argmax(axis=1)(g)
+        classes = graph.create_initializer(
+                g, "classes", class_type,
+                [len(_classes)], _classes,
+            )
+
+        g = ops.argmax(axis=1)(g)                       # fetch class index with highest score
+        g = ops.gather_nd()(graph.merge(classes, g))    # retrieve class name from index
         g = ops.reshape()(graph.merge(g, init_reshape))
         g = ops.identity(prediction_name, suffix=False)(g)
         return g

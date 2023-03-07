@@ -215,7 +215,10 @@ def test_predict_class_binary():
     g = graph.create_graph()
     i = graph.create_input(g, "i", onnx.TensorProto.FLOAT, [None, 1])
 
-    g = ebm.predict_class(binary=True, prediction_name="prediction")(i)
+    g = ebm.predict_class(
+        classes=[0, 1], class_type=onnx.TensorProto.INT64,
+        binary=True, prediction_name="prediction"
+    )(i)
     g = graph.add_output(g, g.transients[0].name, onnx.TensorProto.INT64, [None])
     
     assert_model_result(g, 
@@ -230,7 +233,10 @@ def test_predict_multiclass_binary():
     g = graph.create_graph()
     i = graph.create_input(g, "i", onnx.TensorProto.FLOAT, [None, 3])
 
-    g = ebm.predict_class(binary=False, prediction_name="prediction")(i)
+    g = ebm.predict_class(
+        classes=[0, 1, 2], class_type=onnx.TensorProto.INT64,
+        binary=False, prediction_name="prediction"
+    )(i)
     g = graph.add_output(g, g.transients[0].name, onnx.TensorProto.INT64, [None])
 
     assert_model_result(g,

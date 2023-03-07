@@ -168,18 +168,29 @@ def to_onnx(model, dtype, name="ebm",
     # compute scores, predict and proba
     g = graph.merge(*parts)
     if type(model) is ExplainableBoostingClassifier:
+        class_type = onnx.TensorProto.STRING if model.classes_.dtype.type is np.str_ else onnx.TensorProto.INT64
+        classes=model.classes_
+        if class_type == onnx.TensorProto.STRING:
+            classes=[ c.encode("utf-8") for c in classes]
+
         g, scores_output_name = ebm.compute_class_score(model.intercept_, explain_name)(g)
         g_scores = graph.strip_to_transients(g)
         if len(model.classes_) == 2: # binary classification            
-            g = ebm.predict_class(binary=True, prediction_name=prediction_name)(g)
-            g = graph.add_output(g, g.transients[0].name, onnx.TensorProto.INT64, [None])
+            g = ebm.predict_class(
+                classes=classes, class_type=class_type,
+                binary=True, prediction_name=prediction_name
+            )(g)
+            g = graph.add_output(g, g.transients[0].name, class_type, [None])
             if predict_proba is True:
                 gp = ebm.predict_proba(binary=True, probabilities_name=probabilities_name)(g_scores)
                 g = graph.merge(graph.clear_transients(g), gp)
                 g = graph.add_output(g, g.transients[0].name, onnx.TensorProto.FLOAT, [None, len(model.classes_)])
         else:
-            g = ebm.predict_class(binary=False, prediction_name=prediction_name)(g)
-            g = graph.add_output(g, g.transients[0].name, onnx.TensorProto.INT64, [None])
+            g = ebm.predict_class(
+                classes=classes, class_type=class_type,
+                binary=False, prediction_name=prediction_name
+            )(g)
+            g = graph.add_output(g, g.transients[0].name, class_type, [None])
             if predict_proba is True:
                 gp = ebm.predict_proba(binary=False, probabilities_name=probabilities_name)(g_scores)
                 g = graph.merge(graph.clear_transients(g), gp)
