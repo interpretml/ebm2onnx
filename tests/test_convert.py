@@ -27,7 +27,7 @@ def train_titanic_binary_classification(interactions=0, with_categorical=False):
         feature_types=['continuous', 'continuous', 'continuous', 'continuous']
         feature_columns = ['Age', 'Fare', 'Pclass', 'Old']
     else:
-        feature_types=['continuous', 'continuous', 'nominal', 'continuous', 'nominal']
+        feature_types=['continuous', 'continuous', 'nominal', 'nominal', 'nominal']
         feature_columns = ['Age', 'Fare', 'Pclass', 'Old', 'Embarked']
     label_column = "Survived"
 
