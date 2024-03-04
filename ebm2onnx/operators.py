@@ -41,7 +41,7 @@ def argmax(axis=0, keepdims=1, select_last_index=0):
 
 
 def cast(to):
-    def _cast(g):        
+    def _cast(g):
         cast_result_name = g.generate_name('cast_result')
         nodes = [
             onnx.helper.make_node("Cast", [g.transients[0].name], [cast_result_name], to=to),

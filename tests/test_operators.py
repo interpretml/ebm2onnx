@@ -1,3 +1,4 @@
+import pytest
 import ebm2onnx.graph as graph
 import ebm2onnx.operators as ops
 
@@ -24,29 +25,50 @@ def test_add():
     )
 
 
-def test_cast():
+@pytest.mark.parametrize(
+    "from_type,to_type,input,output",
+    [
+        pytest.param(
+            onnx.TensorProto.INT64,
+            onnx.TensorProto.FLOAT,
+            {'i': [[1], [2], [11], [4]]},
+            [[[1.0], [2.0], [11.0], [4.0]]],
+            id='int64_to_float'
+        ),
+        pytest.param(
+            onnx.TensorProto.INT64,
+            onnx.TensorProto.STRING,
+            {'i': [[1], [2], [11], [4]]},
+            [[["1"], ["2"], ["11"], ["4"]]],
+            id='int64_to_string'
+        ),
+        pytest.param(
+            onnx.TensorProto.BOOL,
+            onnx.TensorProto.UINT8,
+            {'i': [[False], [True]]},
+            [[[0], [1]]],
+            id='bool_to_uint8'
+        ),
+        pytest.param(
+            onnx.TensorProto.BOOL,
+            onnx.TensorProto.STRING,
+            {'i': [[False], [True]]},
+            [[["0"], ["1"]]],
+            id='bool_to_string'
+        ),
+    ]
+)
+def test_cast(from_type, to_type, input, output):
     g = graph.create_graph()
+    i = graph.create_input(g, "i", from_type, [None, 1])
+    l = ops.cast(to_type)(i)
+    l = graph.add_output(l, l.transients[0].name, to_type, [None, 1])
 
-    i = graph.create_input(g, "i", onnx.TensorProto.INT64, [None, 1])
-
-    l = ops.cast(onnx.TensorProto.FLOAT)(i)
-    l = graph.add_output(l, l.transients[0].name, onnx.TensorProto.FLOAT, [None, 1])
-    
-    assert_model_result(l, 
-        input={
-            'i': [
-                [1],
-                [2],
-                [11],
-                [4],
-            ]
-        },
-        expected_result=[[
-            [1.0],
-            [2.0],
-            [11.0],
-            [4.0]
-        ]]
+    assert_model_result(
+        l,
+        input=input,
+        expected_result=output,
+        exact_match=to_type in [onnx.TensorProto.INT64, onnx.TensorProto.STRING]
     )
 
 

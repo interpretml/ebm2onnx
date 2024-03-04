@@ -33,7 +33,13 @@ def infer_model(model, input):
         os.unlink(filename)
 
 
-def assert_model_result(g, input, expected_result, atol=1e-08, save_path=None):
+def assert_model_result(
+    g, input,
+    expected_result,
+    exact_match=False,
+    atol=1e-08,
+    save_path=None
+):
     model = graph.compile(g, target_opset=13)
     _, filename = tempfile.mkstemp()
     try:
@@ -45,8 +51,12 @@ def assert_model_result(g, input, expected_result, atol=1e-08, save_path=None):
         pred = sess.run(None, input)
 
         print(pred)
+        print(expected_result)
         for i, p in enumerate(pred):
-            assert np.allclose(p, np.array(expected_result[i]))
+            if exact_match:
+                assert p.tolist() == expected_result[i]
+            else:
+                assert np.allclose(p, np.array(expected_result[i]))
 
     finally:
         os.unlink(filename)

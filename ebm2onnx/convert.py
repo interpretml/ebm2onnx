@@ -123,6 +123,14 @@ def to_onnx(model, dtype, name="ebm",
 
             feature_dtype = infer_features_dtype(dtype, feature_name)
             part = graph.create_input(root, feature_name, feature_dtype, [None])
+            if feature_dtype == onnx.TensorProto.BOOL:
+                # ONNX converts booleans to strings 0/1, not False/True
+                col_mapping = {
+                    '0': col_mapping['False'],
+                    '1': col_mapping['True'],
+                }
+                # replace inplace to re-use it in interactions
+                model.bins_[feature_group[0]][0] = col_mapping
             if feature_dtype != onnx.TensorProto.STRING:
                 part = ops.cast(onnx.TensorProto.STRING)(part)
             part = ops.flatten()(part)
