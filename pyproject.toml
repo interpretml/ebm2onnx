@@ -1,6 +1,6 @@
 [project]
 name = "ebm2onnx"
-version = "3.1.1"
+version = "3.1.2"
 description = "EBM model serialization to ONNX"
 readme = "README.rst"
 requires-python = ">=3.6"
