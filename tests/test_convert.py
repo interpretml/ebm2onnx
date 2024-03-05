@@ -12,7 +12,7 @@ import ebm2onnx
 from .utils import infer_model, create_session
 
 
-def train_titanic_binary_classification(interactions=0, with_categorical=False):
+def train_titanic_binary_classification(interactions=0, with_categorical=False, old_th=65):
     df = pd.read_csv(
         os.path.join('examples','titanic_train.csv'),
         #dtype= {
@@ -22,7 +22,7 @@ def train_titanic_binary_classification(interactions=0, with_categorical=False):
         #}
     )
     df = df.dropna()
-    df['Old'] = df['Age'] > 65
+    df['Old'] = df['Age'] > old_th
     if with_categorical is False:
         feature_types=['continuous', 'continuous', 'continuous', 'continuous']
         feature_columns = ['Age', 'Fare', 'Pclass', 'Old']
@@ -168,10 +168,12 @@ def test_predict_regression_without_interactions(interactions, explain):
 
 @pytest.mark.parametrize("explain", [False, True])
 @pytest.mark.parametrize("interactions", [0, 2, [(0, 1, 2)], [(0, 1, 2, 3)]])
-def test_predict_binary_classification_with_categorical(interactions, explain):
+@pytest.mark.parametrize("old_th", [65, 0])
+def test_predict_binary_classification_with_categorical(interactions, explain, old_th):
     model_ebm, x_test, y_test = train_titanic_binary_classification(
         interactions=interactions,
         with_categorical=True,
+        old_th=old_th,
     )
     pred_ebm = model_ebm.predict(x_test)
 

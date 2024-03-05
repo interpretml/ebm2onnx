@@ -18,6 +18,10 @@ onnx_type_for={
     'str': onnx.TensorProto.STRING,
 }
 
+bool_remap = {
+    'False': '0',
+    'True': '1',
+}
 
 def infer_features_dtype(dtype, feature_name):
     feature_dtype = onnx.TensorProto.DOUBLE
@@ -126,8 +130,8 @@ def to_onnx(model, dtype, name="ebm",
             if feature_dtype == onnx.TensorProto.BOOL:
                 # ONNX converts booleans to strings 0/1, not False/True
                 col_mapping = {
-                    '0': col_mapping['False'],
-                    '1': col_mapping['True'],
+                    bool_remap[k]: v
+                    for k, v in col_mapping.items()
                 }
                 # replace inplace to re-use it in interactions
                 model.bins_[feature_group[0]][0] = col_mapping
