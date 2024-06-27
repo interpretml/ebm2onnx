@@ -11,7 +11,7 @@ def test_get_bin_index_on_continuous_value():
     g = graph.create_graph()
     i = graph.create_input(g, "i", onnx.TensorProto.FLOAT, [None, 1])
 
-    g = ebm.get_bin_index_on_continuous_value([np.NINF, np.NINF, 0.2, 0.7, 1.2, 4.3])(i)
+    g = ebm.get_bin_index_on_continuous_value([-np.inf, -np.inf, 0.2, 0.7, 1.2, 4.3])(i)
     g = graph.add_output(g, g.transients[0].name, onnx.TensorProto.INT64, [None, 1])
     
     assert_model_result(g, 

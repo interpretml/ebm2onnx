@@ -110,7 +110,7 @@ def to_onnx(model, dtype, name="ebm",
         feature_group=model.term_features_[feature_index]
 
         if feature_type == 'continuous':
-            bins = [np.NINF, np.NINF] + list(model.bins_[feature_group[0]][0])
+            bins = [-np.inf, -np.inf] + list(model.bins_[feature_group[0]][0])
             additive_terms = model.term_scores_[feature_index]
 
             feature_dtype = infer_features_dtype(dtype, feature_name)
@@ -157,7 +157,7 @@ def to_onnx(model, dtype, name="ebm",
                     # the rule is to use bins_ index if there is one binning available for the way count.
                     # otherwise, use the last binning for the feature
                     bin_index = -1 if way_count > len(model.bins_[i_feature_index]) else way_count - 1
-                    bins = [np.NINF, np.NINF] + list(model.bins_[i_feature_index][bin_index])
+                    bins = [-np.inf, -np.inf] + list(model.bins_[i_feature_index][bin_index])
                     input = graph.strip_to_transients(inputs[i_feature_index])
                     i_parts.append(ebm.get_bin_index_on_continuous_value(bins)(input))
 
