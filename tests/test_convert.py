@@ -168,7 +168,7 @@ def test_predict_regression_without_interactions(interactions, explain):
 
 @pytest.mark.parametrize("explain", [False, True])
 @pytest.mark.parametrize("interactions", [0, 2, [(0, 1, 2)], [(0, 1, 2, 3)]])
-@pytest.mark.parametrize("old_th", [65, 0])
+@pytest.mark.parametrize("old_th", [65, 35, 0])
 def test_predict_binary_classification_with_categorical(interactions, explain, old_th):
     model_ebm, x_test, y_test = train_titanic_binary_classification(
         interactions=interactions,
@@ -199,6 +199,13 @@ def test_predict_binary_classification_with_categorical(interactions, explain, o
 
     if explain is True:
         assert len(pred_onnx) == 2
+        local_explain = model_ebm.explain_local(x_test, y_test)
+        for i in range(len(x_test)):
+            assert np.allclose(
+                local_explain.data(i)['scores'],
+                pred_onnx[1][i][:, 0]
+            )
+
     assert np.allclose(pred_ebm, pred_onnx[0])
 
 
