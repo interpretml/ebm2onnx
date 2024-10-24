@@ -93,6 +93,35 @@ def test_flatten():
     )
 
 
+def test_greater_or_equal():
+    g = graph.create_graph()
+
+    a = graph.create_initializer(g, "a", onnx.TensorProto.FLOAT, [4], [0.1, 2.3, 3.55, 9.6])
+    b = graph.create_input(g, "b", onnx.TensorProto.FLOAT, [None, 1])
+
+    l = ops.greater_or_equal()(graph.merge(b, a))
+    l = graph.add_output(l, l.transients[0].name, onnx.TensorProto.BOOL, [None, 4])
+
+    assert_model_result(l,
+        input={
+            'b': [
+                [0.5],
+                [1.2],
+                [11],
+                [4.2],
+                [np.NaN],
+            ]
+        },
+        expected_result=[[
+            [True, False, False, False],
+            [True, False, False, False],
+            [True, True, True, True],
+            [True, True, True, False],
+            [False, False, False, False],
+        ]]
+    )
+
+
 def test_less():
     g = graph.create_graph()
 

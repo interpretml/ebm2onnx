@@ -12,7 +12,7 @@ def add():
         return g._replace(
             nodes=graph.extend(g.nodes, nodes),
             transients=[
-                 onnx.helper.make_tensor_value_info(add_result_name, g.transients[0].type.tensor_type.elem_type, []),
+                onnx.helper.make_tensor_value_info(add_result_name, g.transients[0].type.tensor_type.elem_type, []),
             ],
         )
 
@@ -33,7 +33,7 @@ def argmax(axis=0, keepdims=1, select_last_index=0):
         return g._replace(
             nodes=graph.extend(g.nodes, nodes),
             transients=[
-                 onnx.helper.make_tensor_value_info(argmax_result_name, onnx.TensorProto.INT64, []),
+                onnx.helper.make_tensor_value_info(argmax_result_name, onnx.TensorProto.INT64, []),
             ],
         )
 
@@ -50,7 +50,7 @@ def cast(to):
         return g._replace(
             nodes=graph.extend(g.nodes, nodes),
             transients=[
-                 onnx.helper.make_tensor_value_info(cast_result_name, to, []),
+                onnx.helper.make_tensor_value_info(cast_result_name, to, []),
             ],
         )
 
@@ -69,7 +69,7 @@ def concat(axis):
         return g._replace(
             nodes=graph.extend(g.nodes, nodes),
             transients=[
-                 onnx.helper.make_tensor_value_info(concat_result_name, onnx.TensorProto.UNDEFINED, []),
+                onnx.helper.make_tensor_value_info(concat_result_name, onnx.TensorProto.UNDEFINED, []),
             ],
         )
 
@@ -86,7 +86,7 @@ def expand():
         return g._replace(
             nodes=graph.extend(g.nodes, nodes),
             transients=[
-                 onnx.helper.make_tensor_value_info(expand_result_name, onnx.TensorProto.UNDEFINED, []),
+                onnx.helper.make_tensor_value_info(expand_result_name, onnx.TensorProto.UNDEFINED, []),
             ],
         )
 
@@ -104,7 +104,7 @@ def flatten(axis=1):
         return g._replace(
             nodes=graph.extend(g.nodes, nodes),
             transients=[
-                 onnx.helper.make_tensor_value_info(flatten_result_name, onnx.TensorProto.UNDEFINED, []),
+                onnx.helper.make_tensor_value_info(flatten_result_name, onnx.TensorProto.UNDEFINED, []),
             ],
         )
 
@@ -126,7 +126,7 @@ def gather_elements(axis=0):
         return g._replace(
             nodes=graph.extend(g.nodes, nodes),
             transients=[
-                 onnx.helper.make_tensor_value_info(gather_elements_result_name, onnx.TensorProto.UNDEFINED, []),
+                onnx.helper.make_tensor_value_info(gather_elements_result_name, onnx.TensorProto.UNDEFINED, []),
             ],
         )
 
@@ -148,11 +148,28 @@ def gather_nd():
         return g._replace(
             nodes=graph.extend(g.nodes, nodes),
             transients=[
-                 onnx.helper.make_tensor_value_info(gather_nd_result_name, onnx.TensorProto.UNDEFINED, []),
+                onnx.helper.make_tensor_value_info(gather_nd_result_name, onnx.TensorProto.UNDEFINED, []),
             ],
         )
 
     return _gather_nd
+
+
+def greater_or_equal():
+    def _greater_or_equal(g):        
+        greater_or_equal_result_name = g.generate_name('greater_or_equal_result')
+        nodes = [
+            onnx.helper.make_node("GreaterOrEqual", [g.transients[0].name, g.transients[1].name], [greater_or_equal_result_name]),
+        ]
+
+        return g._replace(
+            nodes=graph.extend(g.nodes, nodes),
+            transients=[
+                onnx.helper.make_tensor_value_info(greater_or_equal_result_name, onnx.TensorProto.BOOL, []),
+            ],
+        )
+
+    return _greater_or_equal
 
 
 def identity(name, suffix=True):
@@ -165,7 +182,7 @@ def identity(name, suffix=True):
         return g._replace(
             nodes=graph.extend(g.nodes, nodes),
             transients=[
-                 onnx.helper.make_tensor_value_info(identity_name, onnx.TensorProto.UNDEFINED, []),
+                onnx.helper.make_tensor_value_info(identity_name, onnx.TensorProto.UNDEFINED, []),
             ],
         )
 
@@ -182,7 +199,7 @@ def less():
         return g._replace(
             nodes=graph.extend(g.nodes, nodes),
             transients=[
-                 onnx.helper.make_tensor_value_info(less_result_name, onnx.TensorProto.BOOL, []),
+                onnx.helper.make_tensor_value_info(less_result_name, onnx.TensorProto.BOOL, []),
             ],
         )
 
@@ -199,11 +216,12 @@ def less_or_equal():
         return g._replace(
             nodes=graph.extend(g.nodes, nodes),
             transients=[
-                 onnx.helper.make_tensor_value_info(less_or_equal_result_name, onnx.TensorProto.BOOL, []),
+                onnx.helper.make_tensor_value_info(less_or_equal_result_name, onnx.TensorProto.BOOL, []),
             ],
         )
 
     return _less_or_equal
+
 
 def mul():
     def _mul(g):        
@@ -215,7 +233,7 @@ def mul():
         return g._replace(
             nodes=graph.extend(g.nodes, nodes),
             transients=[
-                 onnx.helper.make_tensor_value_info(mul_result_name, onnx.TensorProto.UNDEFINED, []),
+                onnx.helper.make_tensor_value_info(mul_result_name, onnx.TensorProto.UNDEFINED, []),
             ],
         )
 
@@ -239,7 +257,7 @@ def reduce_sum(keepdims=1, noop_with_empty_axes=0):
         return g._replace(
             nodes=graph.extend(g.nodes, nodes),
             transients=[
-                 onnx.helper.make_tensor_value_info(reduce_sum_result_name, onnx.TensorProto.UNDEFINED, []),
+                onnx.helper.make_tensor_value_info(reduce_sum_result_name, onnx.TensorProto.UNDEFINED, []),
             ],
         )
 
@@ -261,7 +279,7 @@ def reshape(allowzero=0):
         return g._replace(
             nodes=graph.extend(g.nodes, nodes),
             transients=[
-                 onnx.helper.make_tensor_value_info(reshape_result_name, onnx.TensorProto.UNDEFINED, []),
+                onnx.helper.make_tensor_value_info(reshape_result_name, onnx.TensorProto.UNDEFINED, []),
             ],
         )
 
@@ -283,7 +301,7 @@ def softmax(axis=-1):
         return g._replace(
             nodes=graph.extend(g.nodes, nodes),
             transients=[
-                 onnx.helper.make_tensor_value_info(softmax_result_name, onnx.TensorProto.UNDEFINED, []),
+                onnx.helper.make_tensor_value_info(softmax_result_name, onnx.TensorProto.UNDEFINED, []),
             ],
         )
 

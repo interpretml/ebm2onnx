@@ -222,5 +222,5 @@ def to_onnx(model, dtype, name="ebm",
     else:
         raise NotImplementedError("{} models are not supported".format(type(model)))
 
-    model = graph.compile(g, target_opset, name=name)
+    model = graph.to_onnx(g, target_opset, name=name)
     return model

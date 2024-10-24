@@ -40,7 +40,7 @@ def assert_model_result(
     atol=1e-08,
     save_path=None
 ):
-    model = graph.compile(g, target_opset=13)
+    model = graph.to_onnx(g, target_opset=13)
     _, filename = tempfile.mkstemp()
     try:
         onnx.save_model(model, filename)

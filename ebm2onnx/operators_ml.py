@@ -20,7 +20,7 @@ def category_mapper(cats_int64s, cats_strings, default_int64=-1, default_string=
         return g._replace(
             nodes=graph.extend(g.nodes, nodes),
             transients=[
-                 onnx.helper.make_tensor_value_info(category_mapper_result_name, onnx.TensorProto.UNDEFINED, []),
+                onnx.helper.make_tensor_value_info(category_mapper_result_name, onnx.TensorProto.UNDEFINED, []),
             ],
         )
 

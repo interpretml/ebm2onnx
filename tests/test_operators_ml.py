@@ -1,10 +1,9 @@
 import ebm2onnx.graph as graph
 import ebm2onnx.operators_ml as mlops
 
-import numpy as np
 import onnx
 
-from .utils import assert_model_result, infer_model
+from .utils import infer_model
 
 
 def test_category_mapper_str2int():
@@ -17,8 +16,8 @@ def test_category_mapper_str2int():
         cats_strings=["foo", "bar", "biz"],
     )(i)
     l = graph.add_output(l, l.transients[0].name, onnx.TensorProto.INT64, [None])
-    
-    result = infer_model(graph.compile(l, target_opset=13),
+
+    result = infer_model(graph.to_onnx(l, target_opset=13),
         input={
             'i': ["biz", "foo", "bar", "flah"],
         }
@@ -39,8 +38,8 @@ def test_category_mapper_int2str():
         cats_strings=["foo", "bar", "biz"],
     )(i)
     l = graph.add_output(l, l.transients[0].name, onnx.TensorProto.STRING, [None])
-    
-    result = infer_model(graph.compile(l, target_opset=13),
+
+    result = infer_model(graph.to_onnx(l, target_opset=13),
         input={
             'i': [2, 0, 1, 8],
         }

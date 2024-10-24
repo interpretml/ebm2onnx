@@ -127,6 +127,18 @@ def test_merge():
     ]
 
 
+def test_create_transient_by_name():
+    g = graph.create_graph()
+
+    init = graph.create_transient_by_name(g, "foo", onnx.TensorProto.FLOAT, [4])
+    assert len(init.transients) == 1
+    assert init.transients == [onnx.helper.make_tensor_value_info(
+        'foo' ,
+        onnx.TensorProto.FLOAT,
+        [4],
+    )]
+
+
 def test_strip_to_transients():
     g = graph.create_graph()
 
