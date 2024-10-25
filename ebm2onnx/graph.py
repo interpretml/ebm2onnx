@@ -1,4 +1,4 @@
-from typing import NamedTuple, Callable, Optional, List, Dict
+from typing import NamedTuple, Callable, Optional, List, Dict, Union
 
 import onnx
 from ebm2onnx import __version__
@@ -63,7 +63,7 @@ def from_onnx(model) -> Graph:
 
 def to_onnx(
     graph: Graph,
-    target_opset: Optional[int | Dict[str, int]] = None,
+    target_opset: Optional[Union[int, Dict[str, int]]] = None,
     name: Optional[str] = "ebm",
 ) -> Graph:
     """Converts a graph to an onnx model.
