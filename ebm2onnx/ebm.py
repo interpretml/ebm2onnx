@@ -13,7 +13,7 @@ def get_bin_index_on_continuous_value(bin_edges):
     def _get_bin_index_on_continuous_value(g):
         bin_count = len(bin_edges)
         index_range = list(range(bin_count))
-        
+
         init_bin_index_range = graph.create_initializer(g, "bin_index_range", onnx.TensorProto.FLOAT, [bin_count], index_range)
         init_bin_edges = graph.create_initializer(g, "bin_edges", onnx.TensorProto.DOUBLE, [bin_count], bin_edges)
 

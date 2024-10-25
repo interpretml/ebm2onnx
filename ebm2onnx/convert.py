@@ -73,6 +73,7 @@ def to_onnx(model, dtype, name="ebm",
             prediction_name="prediction",
             probabilities_name="probabilities",
             explain_name="scores",
+            context=None,
             ):
     """Converts an EBM model to ONNX.
 
@@ -93,7 +94,7 @@ def to_onnx(model, dtype, name="ebm",
         An ONNX model.
     """
     target_opset = target_opset or get_latest_opset_version()
-    root = graph.create_graph()
+    root = graph.create_graph(context=context)
 
     inputs = [None for _ in model.feature_names_in_]
     parts = []

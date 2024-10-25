@@ -5,7 +5,7 @@ import onnx
 def test_create_graph():
     g = graph.create_graph()
 
-    assert g.generate_name is not None
+    assert g.context is not None
     assert g.inputs == []
     assert g.outputs == []
     assert g.nodes == []

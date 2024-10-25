@@ -16,8 +16,8 @@ def test_add():
 
     l = ops.add()(graph.merge(i, a))
     l = graph.add_output(l, l.transients[0].name, onnx.TensorProto.FLOAT, [None])
-    
-    assert_model_result(l, 
+
+    assert_model_result(l,
         input={
             'i': [0.1, 1.2, 11, 4.2],
         },
@@ -109,7 +109,7 @@ def test_greater_or_equal():
                 [1.2],
                 [11],
                 [4.2],
-                [np.NaN],
+                [np.nan],
             ]
         },
         expected_result=[[
@@ -138,7 +138,7 @@ def test_less():
                 [1.2],
                 [11],
                 [4.2],
-                [np.NaN],
+                [np.nan],
             ]
         },
         expected_result=[[
@@ -348,8 +348,8 @@ def test_softmax():
 
     l = ops.softmax()(i)
     l = graph.add_output(l, l.transients[0].name, onnx.TensorProto.FLOAT, [None, 2])
-    
-    assert_model_result(l, 
+
+    assert_model_result(l,
         input={
             'i': [
                 [0.0, 0.68],
@@ -364,4 +364,31 @@ def test_softmax():
             [0.7109495 , 0.2890505 ],
             [0.54983395, 0.450166  ]
         ]],
+    )
+
+
+def test_split():
+    g = graph.create_graph()
+
+    i = graph.create_input(g, "i", onnx.TensorProto.FLOAT, [None, 3])
+
+    l = ops.split(axis=1)(i)
+    l = graph.add_output(l, l.transients[0].name, onnx.TensorProto.FLOAT, [None, 1])
+    l = graph.add_output(l, l.transients[1].name, onnx.TensorProto.FLOAT, [None, 1])
+    l = graph.add_output(l, l.transients[2].name, onnx.TensorProto.FLOAT, [None, 1])
+
+    assert_model_result(l,
+        input={
+            'i': [
+                [0.0, 0.68, 1.3],
+                [0.0, 0.2, 4.3],
+                [1.2, 0.3, 5.2],
+                [0.0, -0.2, 8.3],
+            ]
+        },
+        expected_result=[
+            [[0.0], [0.0], [1.2], [0.0]],
+            [[0.68], [0.2], [0.3], [-0.2]],
+            [[1.3], [4.3], [5.2], [8.3]],
+        ],
     )

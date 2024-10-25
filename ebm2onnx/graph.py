@@ -4,30 +4,16 @@ import onnx
 from ebm2onnx import __version__
 from .utils import get_latest_opset_version
 
+from . import context as _context
+
 
 class Graph(NamedTuple):
-    generate_name: Callable[[], str]
+    context: _context.Context
     inputs: List[onnx.ValueInfoProto] = []
     outputs: List[onnx.ValueInfoProto] = []
     transients: List[onnx.ValueInfoProto] = []
     nodes: List[onnx.NodeProto] = []
     initializers: List[onnx.TensorProto] = []
-
-
-def create_name_generator() -> Callable[[str], str]:
-    state = {}
-
-    def _generate_unique_name(name: str) -> str:
-        """ Generates a new globaly unique name in the graph
-        """
-        if name in state:
-            state[name] += 1
-        else:
-            state[name] = 0
-
-        return "{}_{}".format(name, state[name])
-
-    return _generate_unique_name
 
 
 def extend(i, val):
@@ -42,14 +28,16 @@ def pipe(*args):
     pass
 
 
-def create_graph() -> Graph:
+def create_graph(context=None) -> Graph:
     """Creates a new graph object.
 
     Returns:
         A Graph object.
     """
+    if context is None:
+        context = _context.create()
     return Graph(
-        generate_name=create_name_generator()
+        context=context
     )
 
 
@@ -65,7 +53,7 @@ def from_onnx(model) -> Graph:
         A Graph object.
     """
     return Graph(
-        generate_name=create_name_generator(),
+        context=_context.create(),
         inputs=[n for n in model.graph.input],
         outputs=[n for n in model.graph.output],
         nodes=[n for n in model.graph.node],
@@ -97,7 +85,7 @@ def to_onnx(
     graph = onnx.helper.make_graph(
         nodes=graph.nodes,
         name=name,
-        inputs=graph.inputs,    
+        inputs=graph.inputs,
         outputs=graph.outputs,
         initializer=graph.initializers,
     )
@@ -134,7 +122,7 @@ def to_onnx(
 def create_input(graph, name, type, shape):
     input = onnx.helper.make_tensor_value_info(name , type, shape)
     return Graph(
-        generate_name=graph.generate_name,
+        context=graph.context,
         inputs=[input],
         transients=[input],
     )
@@ -148,40 +136,49 @@ def add_output(graph, name, type, shape):
 
 
 def create_initializer(graph, name, type, shape, value):
-    initializer = onnx.helper.make_tensor(graph.generate_name(name) , type, shape, value)
+    initializer = onnx.helper.make_tensor(graph.context.generate_variable_name(name) , type, shape, value)
     return Graph(
-        generate_name=graph.generate_name,
+        context=graph.context,
         initializers=[initializer],
         transients=[initializer],
     )
 
 
-def create_transient_by_name(g, name, type, shape):
+def create_transient_by_name(graph, name, type, shape):
     input = onnx.helper.make_tensor_value_info(name, type, shape)
     return Graph(
-        generate_name=g.generate_name,
+        context=graph.context,
         transients=[input],
     )
 
 
-def add_transient_by_name(g, name, type=onnx.TensorProto.UNDEFINED, shape=[]):
+def add_transient_by_name(graph, name, type=onnx.TensorProto.UNDEFINED, shape=[]):
     tname = [
         o
-        for n in g.nodes
+        for n in graph.nodes
         for o in n.output
         if o == name
-    ][0]
+    ]
+
+    if len(tname) == 0:
+        tname = [
+            name
+            for n in graph.initializers
+            if n.name == name
+        ]
+
+    tname = tname[0]
     t = onnx.helper.make_tensor_value_info(tname, type, shape)
-    return g._replace(
-            transients=extend(g.transients, [t])
-        )
+    return graph._replace(
+        transients=extend(graph.transients, [t])
+    )
 
 
 def strip_to_transients(graph):
     """ Returns only the transients of a graph
     """
     return Graph(
-        generate_name=graph.generate_name,
+        context=graph.context,
         transients=graph.transients,
     )
 

@@ -4,11 +4,13 @@ import ebm2onnx.graph as graph
 
 def category_mapper(cats_int64s, cats_strings, default_int64=-1, default_string="_Unused"):
     def _category_mapper(g):
-        category_mapper_result_name = g.generate_name('category_mapper_result')
+        category_mapper_result_name = g.context.generate_variable_name('category_mapper_result')
         nodes = [
             onnx.helper.make_node(
-                "CategoryMapper",
-                [g.transients[0].name], [category_mapper_result_name],
+                op_type="CategoryMapper",
+                inputs=[g.transients[0].name],
+                outputs=[category_mapper_result_name],
+                name=g.context.generate_operator_name('CategoryMapper'),
                 cats_int64s=cats_int64s,
                 cats_strings=cats_strings,
                 default_int64=default_int64,
