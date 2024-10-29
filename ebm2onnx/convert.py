@@ -66,7 +66,7 @@ def get_dtype_from_pandas(df):
     return dtype
 
 
-def to_onnx(model, dtype, name="ebm",
+def to_graph(model, dtype, name="ebm",
             predict_proba=False,
             explain=False,
             target_opset=None,
@@ -75,7 +75,7 @@ def to_onnx(model, dtype, name="ebm",
             explain_name="scores",
             context=None,
             ):
-    """Converts an EBM model to ONNX.
+    """Converts an EBM model to a graph.
 
     The returned model contains one to three output.
     The first output is always the prediction, and is named "prediction".
@@ -222,6 +222,49 @@ def to_onnx(model, dtype, name="ebm",
         g = graph.add_output(g, scores_output_name, onnx.TensorProto.FLOAT, [None, len(model.term_names_), 1])
     else:
         raise NotImplementedError("{} models are not supported".format(type(model)))
+
+    return g
+
+
+def to_onnx(model, dtype, name="ebm",
+            predict_proba=False,
+            explain=False,
+            target_opset=None,
+            prediction_name="prediction",
+            probabilities_name="probabilities",
+            explain_name="scores",
+            context=None,
+            ):
+    """Converts an EBM model to ONNX.
+
+    The returned model contains one to three output.
+    The first output is always the prediction, and is named "prediction".
+    If predict_proba is set to True, then another output named "probabilities" is added.
+    If explain is set to True, then another output named "scores" is added.
+
+    Args:
+        model: The EBM model, trained with interpretml
+        dtype: A dict containing the type of each input feature. Types are expressed as strings, the following values are supported: float, double, int, str.
+        name: [Optional] The name of the model
+        predict_proba: [Optional] For classification models, output prediction probabilities instead of class
+        explain: [Optional] Adds an additional output with the score per feature per class
+        target_opset: [Optional] The target onnx opset version to use
+
+    Returns:
+        An ONNX model.
+    """
+    g = to_graph(
+        model=model,
+        dtype=dtype,
+        name=name,
+        predict_proba=predict_proba,
+        explain=explain,
+        target_opset=target_opset,
+        prediction_name=prediction_name,
+        probabilities_name=probabilities_name,
+        explain_name=explain_name,
+        context=context,
+        )
 
     model = graph.to_onnx(g, target_opset, name=name)
     return model

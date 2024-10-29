@@ -110,7 +110,7 @@ def to_onnx(
             for k, v in target_opset.items():
                 opset = model.opset_import.add()
                 opset.domain = k
-                opset.model = v
+                opset.version = v
         else:
             raise ValueError(f"ebm2onnx.graph.to_onnx: invalid type for target_opset: {type(target_opset)}.")
     else:

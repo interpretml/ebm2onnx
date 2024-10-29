@@ -79,8 +79,8 @@ def test_flatten():
 
     l = ops.flatten()(i)
     l = graph.add_output(l, l.transients[0].name, onnx.TensorProto.FLOAT, [None, 1])
-    
-    assert_model_result(l, 
+
+    assert_model_result(l,
         input={
             'i': [0.1, 0.2, 0.3, 0.4]
         },
@@ -130,7 +130,7 @@ def test_less():
 
     l = ops.less()(graph.merge(a, b))
     l = graph.add_output(l, l.transients[0].name, onnx.TensorProto.BOOL, [None, 4])
-    
+
     assert_model_result(l, 
         input={
             'b': [
@@ -159,8 +159,8 @@ def test_mul():
 
     l = ops.mul()(graph.merge(a, b))
     l = graph.add_output(l, l.transients[0].name, onnx.TensorProto.FLOAT, [None, 3])
-    
-    assert_model_result(l, 
+
+    assert_model_result(l,
         input={
             'b': [
                 [0.1, 0.1, 0.1],
@@ -180,8 +180,8 @@ def test_argmax():
 
     l = ops.argmax(axis=1)(i)
     l = graph.add_output(l, l.transients[0].name, onnx.TensorProto.INT64, [None, 1])
-    
-    assert_model_result(l, 
+
+    assert_model_result(l,
         input={
             'i': [
                 [1, 4, 2],
@@ -197,6 +197,30 @@ def test_argmax():
     )
 
 
+def test_gather():
+    g = graph.create_graph()
+
+    indices = graph.create_initializer(g, "indices", onnx.TensorProto.INT64, [1], [1])
+    data = graph.create_input(g, "data", onnx.TensorProto.INT64, [None, 3])
+
+    l = ops.gather(axis=1)(graph.merge(data, indices))
+    l = graph.add_output(l, l.transients[0].name, onnx.TensorProto.INT64, [None, 1])
+
+    assert_model_result(l,
+        input={
+            'data': [
+                [1, 2, 3],
+                [4, 5, 6],
+                [7, 8, 9],
+                [10, 11, 12],
+            ]
+        },
+        expected_result=[[
+            [[2], [5], [8], [11]],
+        ]]
+    )
+
+
 def test_gather_elements():
     g = graph.create_graph()
 
@@ -205,8 +229,8 @@ def test_gather_elements():
 
     l = ops.gather_elements()(graph.merge(a, b))
     l = graph.add_output(l, l.transients[0].name, onnx.TensorProto.FLOAT, [None, 1])
-    
-    assert_model_result(l, 
+
+    assert_model_result(l,
         input={
             'b': [
                 [2],
@@ -234,8 +258,8 @@ def test_gather_nd():
 
     l = ops.gather_nd()(graph.merge(a, b))
     l = graph.add_output(l, l.transients[0].name, onnx.TensorProto.FLOAT, [None])
-    
-    assert_model_result(l, 
+
+    assert_model_result(l,
         input={
             'b': [
                 [2, 0],
@@ -255,8 +279,8 @@ def test_concat():
 
     l = ops.concat(axis=1)(graph.merge(a, b))
     l = graph.add_output(l, l.transients[0].name, onnx.TensorProto.FLOAT, [None, 2])
-    
-    assert_model_result(l, 
+
+    assert_model_result(l,
         input={
             'a': [[0.1], [0.2], [0.3]],
             'b': [[1.1], [1.2], [1.3]],
@@ -296,7 +320,6 @@ def test_expand():
     )
 
 
-
 def test_reduce_sum():
     g = graph.create_graph()
 
@@ -305,8 +328,8 @@ def test_reduce_sum():
 
     l = ops.reduce_sum(keepdims=0)(graph.merge(i, axis))
     l = graph.add_output(l, l.transients[0].name, onnx.TensorProto.FLOAT, [None])
-    
-    assert_model_result(l, 
+
+    assert_model_result(l,
         input={
             'i': [
                 [0.1, 1.0, 1.2],
@@ -327,8 +350,8 @@ def test_reshape():
 
     l = ops.reshape()(graph.merge(i, shape))
     l = graph.add_output(l, l.transients[0].name, onnx.TensorProto.FLOAT, [None])
-    
-    assert_model_result(l, 
+
+    assert_model_result(l,
         input={
             'i': [
                 [0.1],

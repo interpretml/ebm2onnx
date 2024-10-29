@@ -140,6 +140,34 @@ def flatten(axis=1):
     return _flatten
 
 
+def gather(axis=0):
+    """
+    Input transients:
+        - data
+        - indices
+    """
+    def _gather(g):
+        gather_result_name = g.context.generate_variable_name('gather_result')
+        nodes = [
+            onnx.helper.make_node(
+                op_type="Gather",
+                inputs=[g.transients[0].name, g.transients[1].name],
+                outputs=[gather_result_name],
+                name=g.context.generate_operator_name('Gather'),
+                axis=axis,
+            ),
+        ]
+
+        return g._replace(
+            nodes=graph.extend(g.nodes, nodes),
+            transients=[
+                onnx.helper.make_tensor_value_info(gather_result_name, onnx.TensorProto.UNDEFINED, []),
+            ],
+        )
+
+    return _gather
+
+
 def gather_elements(axis=0):
     def _gather_elements(g):
         gather_elements_result_name = g.context.generate_variable_name('gather_elements_result')
