@@ -5,6 +5,34 @@ import ebm2onnx.operators_ml as mlops
 import ebm2onnx.graph as graph
 
 
+def split_input(ebm_features):
+    """
+    Transients:
+        - features as a single tensor
+    """
+    def _split_input(g):
+        init_reshape = graph.create_initializer(
+            g, "reshape", onnx.TensorProto.INT64,
+            [1], [0],
+        )
+        init_reshape = graph.clear_transients(init_reshape)
+
+        g = graph.merge(g, init_reshape)
+        g = ops.split(axis=1)(g)
+        splits = g.transients
+
+        for index, t in enumerate(splits):
+            g = graph.clear_transients(g)
+            g = graph.add_transient_by_name(g, t.name)
+            g = graph.add_transient_by_name(g, init_reshape.initializers[0].name)
+            g = ops.reshape()(g)
+            g = ops.identity(ebm_features[index], suffix=False)(g)
+
+        return g
+
+    return _split_input
+
+
 def get_bin_index_on_continuous_value(bin_edges):
     """
 

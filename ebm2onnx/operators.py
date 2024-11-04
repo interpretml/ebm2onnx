@@ -400,14 +400,11 @@ def softmax(axis=-1):
 
 def split(axis=0):
     def _split(g):
-        #print(g.transients[0])
-        #print(list(g.transients[0].type.tensor_type.shape.dim)[1].dim_value)
-        #print("foooo")
         split_result_name = [
             g.context.generate_variable_name('split_result')
             for _ in range(list(g.transients[0].type.tensor_type.shape.dim)[axis].dim_value)
         ]
-        print(split_result_name)
+
         nodes = [
             onnx.helper.make_node(
                 op_type="Split",
@@ -415,7 +412,8 @@ def split(axis=0):
                 outputs=split_result_name,
                 name=g.context.generate_operator_name('Split'),
                 axis=axis,
-            ),
+                num_outputs=len(split_result_name),
+            ),  
         ]
 
         return g._replace(

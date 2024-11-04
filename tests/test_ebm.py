@@ -13,8 +13,8 @@ def test_get_bin_index_on_continuous_value():
 
     g = ebm.get_bin_index_on_continuous_value([-np.inf, -np.inf, 0.2, 0.7, 1.2, 4.3])(i)
     g = graph.add_output(g, g.transients[0].name, onnx.TensorProto.INT64, [None, 1])
-    
-    assert_model_result(g, 
+
+    assert_model_result(g,
         input={
             'i': [
                 [1.3],
@@ -66,8 +66,8 @@ def test_get_bin_score_1d():
 
     g = ebm.get_bin_score_1d(np.array([0.0, 0.1, 0.2, 0.3]))(i)
     g = graph.add_output(g, g.transients[0].name, onnx.TensorProto.FLOAT, [None, 1, 1])
-    
-    assert_model_result(g, 
+
+    assert_model_result(g,
         input={
             'i': [
                 [3],
@@ -122,6 +122,7 @@ def test_get_bin_score_1d_multiclass():
         ]],
     )
 
+
 def test_get_bin_score_2d():
     g = graph.create_graph()
     i1 = graph.create_input(g, "i1", onnx.TensorProto.INT64, [None, 1])
@@ -134,8 +135,8 @@ def test_get_bin_score_2d():
         [10.0, 20.1, 30.2, 40.3],
     ]))(i)
     g = graph.add_output(g, g.transients[0].name, onnx.TensorProto.FLOAT, [None, 1, 1])
-    
-    assert_model_result(g, 
+
+    assert_model_result(g,
         input={
             'i1': [[2], [1], [2], [0]],
             'i2': [[3], [0], [2], [1]],
@@ -158,8 +159,8 @@ def test_compute_class_score():
     i = graph.merge(i1, i2, i3)
     g, _ = ebm.compute_class_score(np.array([0.2]), explain_name="scores")(i)
     g = graph.add_output(g, g.transients[0].name, onnx.TensorProto.FLOAT, [None, 1])
-    
-    assert_model_result(g, 
+
+    assert_model_result(g,
         input={
             'i1': [[[0.1]], [[0.2]], [[0.3]], [[0.4]]],
             'i2': [[[1.1]], [[1.2]], [[1.3]], [[1.4]]],
@@ -220,8 +221,8 @@ def test_predict_class_binary():
         binary=True, prediction_name="prediction"
     )(i)
     g = graph.add_output(g, g.transients[0].name, onnx.TensorProto.INT64, [None])
-    
-    assert_model_result(g, 
+
+    assert_model_result(g,
         input={
             'i': [[3.5], [-3.8], [-0.1], [0.2]]
         },
@@ -258,8 +259,8 @@ def test_predict_proba_binary():
 
     g = ebm.predict_proba(binary=True, probabilities_name="probabilities")(i)
     g = graph.add_output(g, g.transients[0].name, onnx.TensorProto.FLOAT, [None, 2])
-    
-    assert_model_result(g, 
+
+    assert_model_result(g,
         input={
             'i': [[3.5], [-3.8], [-0.1], [0.2]]
         },
@@ -270,4 +271,3 @@ def test_predict_proba_binary():
             [0.450166  , 0.54983395],
         ]]
     )
-

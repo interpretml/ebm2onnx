@@ -12,6 +12,9 @@ def create_session(model):
     _, filename = tempfile.mkstemp()
     try:
         onnx.save_model(model, filename)
+        #with open(filename, "wb") as f:
+        #    f.write(model.SerializeToString())
+
         sess = rt.InferenceSession(filename)
         return sess
     finally:
@@ -22,6 +25,9 @@ def infer_model(model, input):
     _, filename = tempfile.mkstemp()
     try:
         onnx.save_model(model, filename)
+        #with open(filename, "wb") as f:
+        #    f.write(model.SerializeToString())
+
         sess = rt.InferenceSession(filename)
         for o in sess.get_outputs():
             print(o)
@@ -40,7 +46,7 @@ def assert_model_result(
     atol=1e-08,
     save_path=None
 ):
-    model = graph.to_onnx(g, target_opset=13)
+    model = graph.to_onnx(g, target_opset=21)
     _, filename = tempfile.mkstemp()
     try:
         onnx.save_model(model, filename)

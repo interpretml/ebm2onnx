@@ -5,3 +5,4 @@ __email__ = 'romain.picard@softathome.com'
 __version__ = '3.2.0'
 
 from .convert import to_onnx, get_dtype_from_pandas
+from . import sklearn

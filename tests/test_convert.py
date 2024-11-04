@@ -42,8 +42,37 @@ def train_titanic_binary_classification(interactions=0, with_categorical=False, 
     return model, x_test, y_test
 
 
+def train_titanic_binary_classification_tensor(
+    interactions=0,
+    old_th=65
+):
+    df = pd.read_csv(
+        os.path.join('examples', 'titanic_train.csv'),
+    )
+    df = df.dropna()
+    df['Old'] = df['Age'] > old_th
+    feature_types = ['continuous', 'continuous', 'continuous', 'continuous']
+    feature_columns = ['Age', 'Fare', 'Pclass', 'Old']
+    label_column = "Survived"
+
+    y = df[[label_column]]
+    le = LabelEncoder()
+    y_enc = le.fit_transform(y)
+    x = df[feature_columns]
+    x_train, x_test, y_train, y_test = train_test_split(x, y_enc)
+    model = ExplainableBoostingClassifier(
+        interactions=interactions,
+        feature_types=feature_types
+    )
+    print(x_train.dtypes)
+    print(x_train.values.astype(np.float32).dtype)
+    model.fit(x_train.values.astype(np.float32), y_train)
+
+    return model, x_test, y_test
+
+
 def train_titanic_regression(interactions):
-    df = pd.read_csv(os.path.join('examples','titanic_train.csv'))
+    df = pd.read_csv(os.path.join('examples', 'titanic_train.csv'))
     df = df.dropna()
     feature_columns = ['SibSp', 'Fare', 'Pclass']
     label_column = "Age"
@@ -104,6 +133,29 @@ def test_predict_binary_classification(interactions, explain):
         'Fare': x_test['Fare'].values,
         'Pclass': x_test['Pclass'].values,
         'Old': x_test['Old'].values,
+    })
+
+    if explain is True:
+        assert len(pred_onnx) == 2
+    assert np.allclose(pred_ebm, pred_onnx[0])
+
+
+@pytest.mark.parametrize("explain", [False, True])
+@pytest.mark.parametrize("interactions", [0, 2, [(0, 1, 2)], [(0, 1, 2, 3)]])
+def test_predict_binary_classification_tensor(interactions, explain):
+    model_ebm, x_test, y_test = train_titanic_binary_classification_tensor(
+        interactions=interactions
+    )
+    pred_ebm = model_ebm.predict(x_test.values)
+
+    model_onnx = ebm2onnx.to_onnx(
+        model_ebm,
+        explain=explain,
+        dtype=('data', 'float')
+    )
+
+    pred_onnx = infer_model(model_onnx, {
+        'data': x_test.values.astype(np.float32),
     })
 
     if explain is True:

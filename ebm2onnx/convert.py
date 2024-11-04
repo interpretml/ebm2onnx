@@ -1,3 +1,6 @@
+from typing import List
+import logging
+from enum import Enum
 from copy import deepcopy
 from .utils import get_latest_opset_version
 from ebm2onnx import graph
@@ -18,10 +21,23 @@ onnx_type_for = {
     'str': onnx.TensorProto.STRING,
 }
 
+np_type_for = {
+    'bool': bool,
+    'float': np.float32,
+    'double': np.double,
+    'int': int,
+    'str': str,
+}
+
 bool_remap = {
     'False': '0',
     'True': '1',
 }
+
+
+class FeatureType(Enum):
+    COLUMN = 1
+    TENSOR = 2
 
 
 def infer_features_dtype(dtype, feature_name):
@@ -66,6 +82,16 @@ def get_dtype_from_pandas(df):
     return dtype
 
 
+def get_dtype_from_tensor_type(
+    dtype: str,
+    features: List[str]
+):
+    return {
+        f: dtype
+        for f in features
+    }
+
+
 def to_graph(model, dtype, name="ebm",
             predict_proba=False,
             explain=False,
@@ -99,6 +125,18 @@ def to_graph(model, dtype, name="ebm",
     inputs = [None for _ in model.feature_names_in_]
     parts = []
 
+    if type(dtype) is tuple:
+        dname, dtype = dtype
+        logging.debug(f"using tensor-based input {dtype} of len {len(model.feature_names_in_)}")
+        features_org = FeatureType.TENSOR
+        tensor_inputs = graph.create_input(root, dname, onnx_type_for[dtype], [None, len(model.feature_names_in_)])
+        tensor_inputs = ebm.split_input(model.feature_names_in_)(tensor_inputs)
+        tensor_inputs = graph.clear_transients(tensor_inputs)
+        dtype = get_dtype_from_tensor_type(dtype, model.feature_names_in_)
+    else:
+        logging.debug(f"using column-based inputs {model.feature_names_in_}")
+        features_org = FeatureType.COLUMN
+
     feature_types = list(model.feature_types_in_)
     interaction_count = len(model.term_names_) - len(feature_types)
     for _ in range(interaction_count):
@@ -115,9 +153,12 @@ def to_graph(model, dtype, name="ebm",
         if feature_type == 'continuous':
             bins = [-np.inf, -np.inf] + list(model_bins[feature_group[0]][0])
             additive_terms = model.term_scores_[feature_index]
-
             feature_dtype = infer_features_dtype(dtype, feature_name)
-            part = graph.create_input(root, feature_name, feature_dtype, [None])
+
+            if features_org == FeatureType.TENSOR:
+                part = graph.create_transient_by_name(root, feature_name, feature_dtype, [None])
+            else:
+                part = graph.create_input(root, feature_name, feature_dtype, [None])
             part = ops.flatten()(part)
             inputs[feature_index] = part
             part = ebm.get_bin_index_on_continuous_value(bins)(part)
@@ -129,6 +170,9 @@ def to_graph(model, dtype, name="ebm",
             additive_terms = model.term_scores_[feature_index]
 
             feature_dtype = infer_features_dtype(dtype, feature_name)
+            if features_org == FeatureType.TENSOR:
+                raise ValueError("tensor-based inputs are not supported with nominal/ordinal features")
+
             part = graph.create_input(root, feature_name, feature_dtype, [None])
             if feature_dtype == onnx.TensorProto.BOOL:
                 # ONNX converts booleans to strings 0/1, not False/True
@@ -180,7 +224,11 @@ def to_graph(model, dtype, name="ebm",
             raise ValueError(f"The type of the feature {feature_name} is unknown: {feature_type}")
 
     # compute scores, predict and proba
-    g = graph.merge(*parts)
+    if features_org == FeatureType.TENSOR:
+        g = graph.merge(tensor_inputs, *parts)
+    else:
+        g = graph.merge(*parts)
+
     if type(model) is ExplainableBoostingClassifier:
         class_type = onnx.TensorProto.STRING if model.classes_.dtype.type is np.str_ else onnx.TensorProto.INT64
         classes = model.classes_
