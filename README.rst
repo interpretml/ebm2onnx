@@ -36,6 +36,7 @@ Features
 * Multi-class classification (support is still experimental in EBM)
 * Expose predictions probabilities
 * Expose local explanations
+* Export a model as part of a scikit-learn pipeline (experimental)
 
 The export of the models is tested against `ONNX Runtime <https://github.com/Microsoft/onnxruntime>`_. 
 
@@ -103,6 +104,7 @@ Try it live
 
 - You can live test the `model conversion <https://mybinder.org/v2/gh/interpretml/ebm2onnx/master?filepath=examples%2Fconvert.ipynb>`_.
 - You can live test `local explanations <https://mybinder.org/v2/gh/interpretml/ebm2onnx/master?filepath=examples%2Fexplain_local.ipynb>`_.
+- You can live test the export of a `scikit-learn pipeline <https://mybinder.org/v2/gh/interpretml/ebm2onnx/master?filepath=examples%2Fsklearn-pipeline.ipynb>`_.
 
 
 Supporting organizations
