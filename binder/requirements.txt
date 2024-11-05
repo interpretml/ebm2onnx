@@ -1,4 +1,4 @@
-ebm2onnx==3.2.0
+ebm2onnx==3.3.0
 numpy
 pandas
 onnxruntime
