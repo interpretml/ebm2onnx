@@ -82,7 +82,6 @@ def test_pipeline_binary_classification(interactions, explain):
             ("Pclass", Int64TensorType([None, 1])),
             ("Old", BooleanTensorType([None, 1])),
         ],
-        target_opset={"": 21, "ai.onnx.ml": 3},
         options={id(pipe): {"zipmap": False}},
     )
 

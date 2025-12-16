@@ -35,9 +35,10 @@ try:
             context=ctx
         )
 
-        for node in g.nodes:
-            v = container._get_op_version(node.domain, node.op_type)
-            container.node_domain_version_pair_sets.add((node.domain, v))
+        for domain, version in g.opsets.items():
+            container.node_domain_version_pair_sets.add(
+                (domain, version)
+            )
 
         container.nodes.extend(g.nodes)
 

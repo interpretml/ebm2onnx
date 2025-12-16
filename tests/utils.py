@@ -4,6 +4,7 @@ import pytest
 
 import numpy as np
 import onnx
+from onnx.checker import check_model
 import onnxruntime as rt
 import ebm2onnx.graph as graph
 
@@ -22,6 +23,8 @@ def create_session(model):
 
 
 def infer_model(model, input):
+    check_model(model)
+
     _, filename = tempfile.mkstemp()
     try:
         onnx.save_model(model, filename)
@@ -46,8 +49,10 @@ def assert_model_result(
     atol=1e-08,
     save_path=None
 ):
-    model = graph.to_onnx(g, target_opset=21)
+    model = graph.to_onnx(g)
+    check_model(model)
     _, filename = tempfile.mkstemp()
+
     try:
         onnx.save_model(model, filename)
         if save_path:

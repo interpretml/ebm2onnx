@@ -1,8 +1,8 @@
-from typing import NamedTuple, Callable, Optional, List, Dict, Union
+import logging
+from typing import NamedTuple, Optional, List, Dict, Union
 
 import onnx
-from ebm2onnx import __version__
-from .utils import get_latest_opset_version
+from onnx.helper import make_opsetid
 
 from . import context as _context
 
@@ -14,6 +14,7 @@ class Graph(NamedTuple):
     transients: List[onnx.ValueInfoProto] = []
     nodes: List[onnx.NodeProto] = []
     initializers: List[onnx.TensorProto] = []
+    opsets: Dict[str, int] = {}
 
 
 def extend(i, val):
@@ -52,12 +53,18 @@ def from_onnx(model) -> Graph:
     Returns:
         A Graph object.
     """
+    opsets = {
+        op.domain: op.version
+        for op in model.opset_import
+    }
+
     return Graph(
         context=_context.create(),
         inputs=[n for n in model.graph.input],
         outputs=[n for n in model.graph.output],
         nodes=[n for n in model.graph.node],
         initializers=[n for n in model.graph.initializer],
+        opsets=opsets,
     )
 
 
@@ -74,13 +81,19 @@ def to_onnx(
 
     Args:
         graph: The graph object
-        target_opset: the target opset to use when converting ot onnx, can be an int or a dict
+        target_opset: [Optional][Deprecated] the target opset to use when converting ot onnx, can be an int or a dict
         name: [Optional] An existing ONNX model
 
     Returns:
         A Graph object.
     """
-    #outputs = graph.transients
+    if target_opset:
+        logging.warning("to_onnx: target_opset argument is deprecated")
+
+    opset_imports = [
+        make_opsetid(domain=domain, version=version)
+        for domain,version in graph.opsets.items()
+    ]
 
     graph = onnx.helper.make_graph(
         nodes=graph.nodes,
@@ -89,32 +102,15 @@ def to_onnx(
         outputs=graph.outputs,
         initializer=graph.initializers,
     )
-    model = onnx.helper.make_model(graph, producer_name='ebm2onnx')
 
-    #producer_name = "interpretml/ebm2onnx"
-    #producer_version = __version__
-
-    #domain
-    #model_version
-    #doc_string
-
-    #metadata_props
-
-    # set opset versions
-    if target_opset is not None:
-        if type(target_opset) is int:
-            model.opset_import[0].version = target_opset
-        elif type(target_opset) is dict:
-            del model.opset_import[:]
-
-            for k, v in target_opset.items():
-                opset = model.opset_import.add()
-                opset.domain = k
-                opset.version = v
-        else:
-            raise ValueError(f"ebm2onnx.graph.to_onnx: invalid type for target_opset: {type(target_opset)}.")
-    else:
-        model.opset_import[0].version = get_latest_opset_version()
+    # create the onnx model from the graph.
+    # The onnx library will set the ir version to the minimal required ir that
+    # is compatible with the opset_imports provided.
+    model = onnx.helper.make_model_gen_version(
+        graph,
+        producer_name='ebm2onnx',
+        opset_imports=opset_imports,
+    )
 
     return model
 
@@ -209,5 +205,11 @@ def merge(*args):
                 transients=extend(g.transients, graph.transients),
                 nodes=extend(g.nodes, graph.nodes),
             )
+
+            # merge opsets, keep higher version for each domain
+            for domain,version in graph.opsets.items():
+                cur_version = g.opsets.get(domain, -1)
+                if version > cur_version:
+                    g.opsets[domain] = version
 
     return g

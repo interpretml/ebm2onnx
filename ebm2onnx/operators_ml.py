@@ -1,8 +1,10 @@
 import onnx
 import ebm2onnx.graph as graph
+from .utils import opset
 
 
 def category_mapper(cats_int64s, cats_strings, default_int64=-1, default_string="_Unused"):
+    @opset(version=1, domain="ai.onnx.ml")
     def _category_mapper(g):
         category_mapper_result_name = g.context.generate_variable_name('category_mapper_result')
         nodes = [

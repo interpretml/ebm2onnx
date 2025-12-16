@@ -1,8 +1,10 @@
 import onnx
 import ebm2onnx.graph as graph
+from .utils import opset
 
 
 def add():
+    @opset(version=14)
     def _add(g):
         add_result_name = g.context.generate_variable_name('add_result')
         nodes = [
@@ -25,6 +27,7 @@ def add():
 
 
 def argmax(axis=0, keepdims=1, select_last_index=0):
+    @opset(version=13)
     def _argmax(g):        
         argmax_result_name = g.context.generate_variable_name('argmax_result')
         nodes = [
@@ -48,6 +51,7 @@ def argmax(axis=0, keepdims=1, select_last_index=0):
 
 
 def cast(to):
+    @opset(version=13)
     def _cast(g):
         cast_result_name = g.context.generate_variable_name('cast_result')
         nodes = [
@@ -71,6 +75,7 @@ def cast(to):
 
 
 def concat(axis):
+    @opset(version=13)
     def _concat(g):
         concat_result_name = g.context.generate_variable_name('concat_result')
 
@@ -96,6 +101,7 @@ def concat(axis):
 
 
 def expand():
+    @opset(version=13)
     def _expand(g):        
         expand_result_name = g.context.generate_variable_name('expand_result')
         nodes = [
@@ -118,6 +124,7 @@ def expand():
 
 
 def flatten(axis=1):
+    @opset(version=13)
     def _flatten(g):        
         flatten_result_name = g.context.generate_variable_name('flatten_result')
         nodes = [
@@ -146,6 +153,7 @@ def gather(axis=0):
         - data
         - indices
     """
+    @opset(version=13)
     def _gather(g):
         gather_result_name = g.context.generate_variable_name('gather_result')
         nodes = [
@@ -169,6 +177,7 @@ def gather(axis=0):
 
 
 def gather_elements(axis=0):
+    @opset(version=13)
     def _gather_elements(g):
         gather_elements_result_name = g.context.generate_variable_name('gather_elements_result')
         nodes = [
@@ -197,6 +206,7 @@ def gather_nd():
         - scores, as a 2D matrix
         - indices, as a [None, 2] matrix
     """
+    @opset(version=13)
     def _gather_nd(g):
         gather_nd_result_name = g.context.generate_variable_name('gather_nd_result')
         nodes = [
@@ -219,6 +229,7 @@ def gather_nd():
 
 
 def greater_or_equal():
+    @opset(version=16)
     def _greater_or_equal(g):
         greater_or_equal_result_name = g.context.generate_variable_name('greater_or_equal_result')
         nodes = [
@@ -241,6 +252,7 @@ def greater_or_equal():
 
 
 def identity(name, suffix=True):
+    @opset(version=13)
     def _identity(g):
         identity_name = g.context.generate_variable_name(name) if suffix else name
         nodes = [
@@ -263,6 +275,7 @@ def identity(name, suffix=True):
 
 
 def less():
+    @opset(version=13)
     def _less(g):        
         less_result_name = g.context.generate_variable_name('less_result')
         nodes = [
@@ -285,6 +298,7 @@ def less():
 
 
 def less_or_equal():
+    @opset(version=16)
     def _less_or_equal(g):        
         less_or_equal_result_name = g.context.generate_variable_name('less_or_equal_result')
         nodes = [
@@ -307,6 +321,7 @@ def less_or_equal():
 
 
 def mul():
+    @opset(version=13)
     def _mul(g):        
         mul_result_name = g.context.generate_variable_name('mul_result')
         nodes = [
@@ -329,6 +344,7 @@ def mul():
 
 
 def reduce_sum(keepdims=1, noop_with_empty_axes=0):
+    @opset(version=13)
     def _reduce_sum(g):
         reduce_sum_result_name = g.context.generate_variable_name('reduce_sum_result')
         nodes = [
@@ -354,6 +370,7 @@ def reduce_sum(keepdims=1, noop_with_empty_axes=0):
 
 
 def reshape(allowzero=0):
+    @opset(version=13)
     def _reshape(g):
         reshape_result_name = g.context.generate_variable_name('reshape_result')
         nodes = [
@@ -376,6 +393,7 @@ def reshape(allowzero=0):
 
 
 def softmax(axis=-1):
+    @opset(version=13)
     def _softmax(g):
         softmax_result_name = g.context.generate_variable_name('softmax_result')
         nodes = [
@@ -399,6 +417,7 @@ def softmax(axis=-1):
 
 
 def split(axis=0):
+    @opset(version=18)
     def _split(g):
         split_result_name = [
             g.context.generate_variable_name('split_result')

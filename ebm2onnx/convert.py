@@ -2,7 +2,6 @@ from typing import List
 import logging
 from enum import Enum
 from copy import deepcopy
-from .utils import get_latest_opset_version
 from ebm2onnx import graph
 from ebm2onnx import ebm
 import ebm2onnx.operators as ops
@@ -114,12 +113,13 @@ def to_graph(model, dtype, name="ebm",
         name: [Optional] The name of the model
         predict_proba: [Optional] For classification models, output prediction probabilities instead of class
         explain: [Optional] Adds an additional output with the score per feature per class
-        target_opset: [Optional] The target onnx opset version to use
+        target_opset: [Optional][Deprecated] The target onnx opset version to use
 
     Returns:
         An ONNX model.
     """
-    target_opset = target_opset or get_latest_opset_version()
+    if target_opset:
+        logging.warning("to_graph: target_opset argument is deprecated")
     root = graph.create_graph(context=context)
 
     inputs = [None for _ in model.feature_names_in_]
@@ -296,23 +296,24 @@ def to_onnx(model, dtype, name="ebm",
         name: [Optional] The name of the model
         predict_proba: [Optional] For classification models, output prediction probabilities instead of class
         explain: [Optional] Adds an additional output with the score per feature per class
-        target_opset: [Optional] The target onnx opset version to use
+        target_opset: [Optional][Deprecated] The target onnx opset version to use
 
     Returns:
         An ONNX model.
     """
+    if target_opset:
+        logging.warning("to_onnx: target_opset argument is deprecated")
     g = to_graph(
         model=model,
         dtype=dtype,
         name=name,
         predict_proba=predict_proba,
         explain=explain,
-        target_opset=target_opset,
         prediction_name=prediction_name,
         probabilities_name=probabilities_name,
         explain_name=explain_name,
         context=context,
         )
 
-    model = graph.to_onnx(g, target_opset, name=name)
+    model = graph.to_onnx(g, name=name)
     return model

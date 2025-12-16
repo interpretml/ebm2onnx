@@ -1,12 +1,14 @@
-from onnx import defs
 
 
-def get_latest_opset_version():
-    """
-    This module relies on *onnxruntime* to test every
-    converter. The function returns the most recent
-    target opset tested with *onnxruntime* or the opset
-    version specified by *onnx* package if this one is lower
-    (return by `onnx.defs.onnx_opset_version()`).
-    """
-    return min(21, defs.onnx_opset_version())
+def opset(version: int, domain: str=""):
+    def _operator(op):
+        def _call(g):
+            g = op(g)
+            old_version = g.opsets.get(domain, -1)
+            if version > old_version:
+                g.opsets[domain] = version
+            return g
+
+        return _call
+
+    return _operator
