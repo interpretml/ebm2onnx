@@ -88,7 +88,10 @@ def train_titanic_regression(interactions):
     return model, x_test, y_test
 
 
-def train_bank_churners_multiclass_classification(encode_label=True):
+def train_bank_churners_multiclass_classification(
+        encode_label=True,
+        interactions=0,
+):
     df = pd.read_csv(
         os.path.join('examples','BankChurners.csv'),
     )
@@ -105,7 +108,10 @@ def train_bank_churners_multiclass_classification(encode_label=True):
         y_enc = y
     x = df[feature_columns]
     x_train, x_test, y_train, y_test = train_test_split(x, y_enc)
-    model = ExplainableBoostingClassifier(interactions=0, feature_types=feature_types)
+    model = ExplainableBoostingClassifier(
+        interactions=interactions,
+        feature_types=feature_types
+    )
     model.fit(x_train, y_train)
 
     return model, x_test, y_test
@@ -262,8 +268,12 @@ def test_predict_binary_classification_with_categorical(interactions, explain, o
 
 
 @pytest.mark.parametrize("encode_label", [False, True])
-def test_predict_multiclass_classification(encode_label):
-    model_ebm, x_test, y_test = train_bank_churners_multiclass_classification(encode_label=encode_label)
+@pytest.mark.parametrize("interactions", [0, 2, [(0, 1, 2)]])
+def test_predict_multiclass_classification(encode_label, interactions):
+    model_ebm, x_test, y_test = train_bank_churners_multiclass_classification(
+        encode_label=encode_label,
+        interactions=interactions,
+    )
     pred_ebm = model_ebm.predict(x_test)
 
     model_onnx = ebm2onnx.to_onnx(

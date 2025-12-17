@@ -104,7 +104,7 @@ def get_bin_score_2d(bin_scores):
 
         init_reshape = graph.create_initializer(
             g, "score_reshape", onnx.TensorProto.INT64,
-            [3], [-1, 1, 1],
+            [3], [-1, 1, bin_scores.shape[-1]],
         )
 
         g = ops.concat(axis=1)(g)
