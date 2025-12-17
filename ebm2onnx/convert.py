@@ -217,7 +217,10 @@ def to_graph(model, dtype, name="ebm",
 
             part = graph.merge(*i_parts)
             additive_terms = model.term_scores_[feature_index]
-            part = ebm.get_bin_score_2d(np.array(additive_terms))(part)
+            part = ebm.get_bin_score_2d(
+                np.array(additive_terms),
+                1 if len(model.classes_) == 2 else len(model.classes_),
+            )(part)
             parts.append(part)
 
         else:

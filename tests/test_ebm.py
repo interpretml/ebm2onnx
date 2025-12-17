@@ -129,11 +129,14 @@ def test_get_bin_score_2d():
     i2 = graph.create_input(g, "i2", onnx.TensorProto.INT64, [None, 1])
 
     i = graph.merge(i1, i2)
-    g = ebm.get_bin_score_2d(np.array([
-        [0.0, 0.1, 0.2, 0.3],
-        [1.0, 2.1, 3.2, 4.3],
-        [10.0, 20.1, 30.2, 40.3],
-    ]))(i)
+    g = ebm.get_bin_score_2d(
+        np.array([
+            [0.0, 0.1, 0.2, 0.3],
+            [1.0, 2.1, 3.2, 4.3],
+            [10.0, 20.1, 30.2, 40.3],
+        ]),
+        class_count=1,
+    )(i)
     g = graph.add_output(g, g.transients[0].name, onnx.TensorProto.FLOAT, [None, 1, 1])
 
     assert_model_result(g,

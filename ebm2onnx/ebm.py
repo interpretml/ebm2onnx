@@ -94,7 +94,7 @@ def get_bin_score_1d(bin_scores):
     return _get_bin_score_1d
 
 
-def get_bin_score_2d(bin_scores):
+def get_bin_score_2d(bin_scores, class_count):
     def _get_bin_score_2d(g):
         init_bin_scores = graph.create_initializer(
             g, "bin_scores", onnx.TensorProto.FLOAT,
@@ -104,7 +104,7 @@ def get_bin_score_2d(bin_scores):
 
         init_reshape = graph.create_initializer(
             g, "score_reshape", onnx.TensorProto.INT64,
-            [3], [-1, 1, bin_scores.shape[-1]],
+            [3], [-1, 1, class_count],
         )
 
         g = ops.concat(axis=1)(g)
