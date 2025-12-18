@@ -1,0 +1,20 @@
+[tool.bumpversion]
+current_version = "3.3.0"
+commit = true
+tag = true
+commit_args = "-s"
+
+[[tool.bumpversion.files]]
+filename = "pyproject.toml"
+search = "version = \"{current_version}\""
+replace = "version = \"{new_version}\""
+
+[[tool.bumpversion.files]]
+filename = "ebm2onnx/__init__.py"
+search = "__version__ = '{current_version}'"
+replace = "__version__ = '{new_version}'"
+
+[[tool.bumpversion.files]]
+filename = "binder/requirements.txt"
+search = "ebm2onnx=={current_version}"
+replace = "ebm2onnx=={new_version}"
